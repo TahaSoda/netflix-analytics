@@ -244,7 +244,7 @@ try:
                              color='count', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
             fig_cast.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                 xaxis=dict(visible=False), yaxis=dict(title=None, categoryorder='total ascending', tickfont=dict(size=8)),
-                margin=dict(t=5, b=25, l=10, r=10), height=110, coloraxis_showscale=False)
+                margin=dict(t=5, b=25, l=10, r=10), height=160, coloraxis_showscale=False)
             st.plotly_chart(fig_cast, use_container_width=True, config={'displayModeBar': False}, key="c1")
 
     with c3:
@@ -255,7 +255,7 @@ try:
                             color='imdb_score', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
             fig_dir.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                 xaxis=dict(visible=False, range=[0, 10]), yaxis=dict(title=None, categoryorder='total ascending', tickfont=dict(size=8)),
-                margin=dict(t=5, b=25, l=10, r=10), height=110, coloraxis_showscale=False)
+                margin=dict(t=5, b=25, l=10, r=10), height=160, coloraxis_showscale=False)
             st.plotly_chart(fig_dir, use_container_width=True, config={'displayModeBar': False}, key="c3")
 
     with c4:
@@ -266,7 +266,7 @@ try:
                             color='count', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
             fig_rat.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                 xaxis=dict(title=None, tickfont=dict(size=8), tickangle=-45), yaxis=dict(visible=False),
-                margin=dict(t=5, b=45, l=10, r=10), height=110, coloraxis_showscale=False)
+                margin=dict(t=5, b=45, l=10, r=10), height=160, coloraxis_showscale=False)
             st.plotly_chart(fig_rat, use_container_width=True, config={'displayModeBar': False}, key="c4")
 
     with c5:
@@ -276,7 +276,7 @@ try:
             fig_geo = px.treemap(geo, path=[px.Constant("All"), 'country'], values='count',
                                  color='count', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
             fig_geo.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                margin=dict(t=5, b=25, l=10, r=10), height=110, coloraxis_showscale=False)
+                margin=dict(t=5, b=25, l=10, r=10), height=160, coloraxis_showscale=False)
             fig_geo.update_traces(textinfo="label+value")
             st.plotly_chart(fig_geo, use_container_width=True, key="c5", config={'displayModeBar': False})
 
