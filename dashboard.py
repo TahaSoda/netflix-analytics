@@ -149,7 +149,8 @@ try:
                 st.metric("Movie", f"{m_count:,}")
             with k2:
                 if m_count > 0 or tv_count > 0:
-                    fig_ratio = px.pie(values=[m_count, tv_count], names=['Movies', 'Shows'], hole=0.7, color_discrete_sequence=[NETFLIX_RED, '#444'])
+                    ratio_df = pd.DataFrame({'label': ['Movies', 'Shows'], 'value': [m_count, tv_count]})
+                    fig_ratio = px.pie(ratio_df, values='value', names='label', hole=0.7, color_discrete_sequence=[NETFLIX_RED, '#444'])
                     fig_ratio.update_layout(showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5, font=dict(size=11)), margin=dict(t=0, b=30, l=0, r=0), height=170, paper_bgcolor='rgba(0,0,0,0)')
                     st.plotly_chart(fig_ratio, use_container_width=True, config={'displayModeBar': False})
 
@@ -184,7 +185,8 @@ try:
         with st.container(border=True):
             st.write("**Top Cast**")
             if not credits_filter.empty:
-                cast = credits_filter[credits_filter['role'] == 'ACTOR']['name'].value_counts().head(8).reset_index()
+                cast_counts = credits_filter[credits_filter['role'] == 'ACTOR']['name'].value_counts().head(8)
+                cast = pd.DataFrame({'name': cast_counts.index, 'count': cast_counts.values})
                 fig_cast = px.bar(cast, x='count', y='name', orientation='h', color_discrete_sequence=[NETFLIX_RED])
                 fig_cast.update_layout(height=200, margin=dict(t=0, b=0, l=0, r=0), xaxis_visible=False, yaxis_title=None, yaxis={'categoryorder':'total ascending'})
                 st.plotly_chart(fig_cast, use_container_width=True, config={'displayModeBar': False})
@@ -193,7 +195,8 @@ try:
         with st.container(border=True):
             st.write("**Maturity**")
             if 'age_certification' in final_df.columns:
-                ratings = final_df['age_certification'].value_counts().head(8).reset_index()
+                ratings_counts = final_df['age_certification'].value_counts().head(8)
+                ratings = pd.DataFrame({'age_certification': ratings_counts.index, 'count': ratings_counts.values})
                 fig_mat = px.bar(ratings, x='age_certification', y='count', color_discrete_sequence=[NETFLIX_RED])
                 fig_mat.update_layout(height=200, margin=dict(t=10, b=0, l=0, r=0), yaxis_visible=False, xaxis_title=None)
                 st.plotly_chart(fig_mat, use_container_width=True, config={'displayModeBar': False})
@@ -203,7 +206,8 @@ try:
             header_text = f"**Region** | :red[{active_region}]" if active_region != "All" else "**Region**"
             st.markdown(header_text)
             if 'country' in base_df.columns:
-                geo = base_df['country'].explode().value_counts().head(8).reset_index()
+                geo_counts = base_df['country'].explode().value_counts().head(8)
+                geo = pd.DataFrame({'country': geo_counts.index, 'count': geo_counts.values})
                 if not geo.empty:
                     fig_geo = px.treemap(geo, path=[px.Constant("All"), 'country'], values='count', color='count', color_continuous_scale=[[0, "#333"], [1, NETFLIX_RED]])
                     fig_geo.update_layout(margin=dict(t=0, b=0, l=0, r=0), height=210, coloraxis_showscale=False)
