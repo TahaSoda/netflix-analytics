@@ -104,12 +104,29 @@ try:
             st.session_state['show_explorer'] = True
         else:
             st.session_state['show_explorer'] = False
+            
+        # Clear Chart Filters
+        if st.session_state.get('chart_filter_genre') or st.session_state.get('chart_filter_region'):
+            if st.button("🔴 Clear Chart Filters", use_container_width=True):
+                st.session_state['chart_filter_genre'] = None
+                st.session_state['chart_filter_region'] = None
+                st.rerun()
 
     # --- Filtering Logic ---
+    # Apply Basic Filters
     filtered_df = df[
         (df['type'].isin(content_selection)) &
         (df['release_year'].between(years[0], years[1]))
     ]
+    
+    # Apply Chart-based Slicers
+    active_genre = st.session_state.get('chart_filter_genre')
+    active_region = st.session_state.get('chart_filter_region')
+    
+    if active_genre:
+        filtered_df = filtered_df[filtered_df['listed_in'].apply(lambda x: active_genre in x if isinstance(x, list) else False)]
+    if active_region:
+        filtered_df = filtered_df[filtered_df['country'].apply(lambda x: active_region in x if isinstance(x, list) else False)]
     
     # Apply Search
     if search_query:
@@ -219,15 +236,24 @@ try:
 
     with col_sun:
         with st.container(border=True):
-            st.markdown("**Composition**")
+            title_prefix = f"🎯 {active_genre}: " if active_genre else ""
+            st.markdown(f"**{title_prefix}Composition**")
             sun_df = base_filtered_df[['type', 'listed_in']].explode('listed_in')
             top_genres = sun_df.groupby('listed_in').size().reset_index(name='count').sort_values('count', ascending=False).head(8)
             fig_tree = px.treemap(top_genres, path=[px.Constant("All"), 'listed_in'], values='count',
                                  color='count', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
             fig_tree.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                margin=dict(t=10, b=10, l=10, r=10), height=260, coloraxis_showscale=False)
+                margin=dict(t=10, b=10, l=10, r=10), height=160, coloraxis_showscale=False)
             fig_tree.update_traces(textinfo="label+value")
-            st.plotly_chart(fig_tree, use_container_width=True, key="tree_chart", config={'displayModeBar': False})
+            
+            # Interactive Selection
+            event = st.plotly_chart(fig_tree, use_container_width=True, key="tree_chart", config={'displayModeBar': False}, on_select="rerun")
+            
+            if event and event.get("selection", {}).get("points"):
+                clicked = event["selection"]["points"][0].get("label")
+                if clicked and clicked != "All":
+                    st.session_state['chart_filter_genre'] = clicked
+                    st.rerun()
 
     # --- Row 2: Deep Analysis (4 Columns, Region dominant) ---
     c1, c3, c4, c5 = st.columns([1, 1, 1, 2])
@@ -271,14 +297,23 @@ try:
 
     with c5:
         with st.container(border=True):
-            st.write("**Region**")
+            reg_title = f"🌍 {active_region}: " if active_region else ""
+            st.write(f"**{reg_title}Region**")
             geo = filtered_df['country'].explode().value_counts().head(5).reset_index()
             fig_geo = px.treemap(geo, path=[px.Constant("All"), 'country'], values='count',
                                  color='count', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
             fig_geo.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                 margin=dict(t=5, b=25, l=10, r=10), height=160, coloraxis_showscale=False)
             fig_geo.update_traces(textinfo="label+value")
-            st.plotly_chart(fig_geo, use_container_width=True, key="c5", config={'displayModeBar': False})
+            
+            # Interactive Selection
+            reg_event = st.plotly_chart(fig_geo, use_container_width=True, key="c5", config={'displayModeBar': False}, on_select="rerun")
+            
+            if reg_event and reg_event.get("selection", {}).get("points"):
+                reg_clicked = reg_event["selection"]["points"][0].get("label")
+                if reg_clicked and reg_clicked != "All":
+                    st.session_state['chart_filter_region'] = reg_clicked
+                    st.rerun()
 
     if st.session_state.get('show_explorer', False):
         st.dataframe(filtered_df[['title', 'type', 'release_year', 'imdb_score']].head(10), use_container_width=True)
