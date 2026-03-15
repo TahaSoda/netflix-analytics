@@ -93,32 +93,32 @@ st.markdown(f"""
         margin-bottom: 20px;
     }}
     
-    /* Metric Card Styling */
+    /* Metric Card Styling - Compact */
     div[data-testid="stMetric"] {{
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 15px !important;
-        border-radius: 12px;
+        padding: 8px 12px !important;
+        border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s ease;
     }}
     
     div[data-testid="stMetric"]:hover {{
-        transform: translateY(-3px);
+        transform: translateY(-2px);
         background: rgba(255, 255, 255, 0.08);
         border-color: {NETFLIX_RED};
     }}
     
     div[data-testid="stMetricValue"] {{
-        font-size: 1.8rem !important;
+        font-size: 1.4rem !important;
         font-weight: 700 !important;
         color: {NETFLIX_RED} !important;
     }}
     
     div[data-testid="stMetricLabel"] {{
-        font-size: 0.9rem !important;
+        font-size: 0.75rem !important;
         color: #BBB !important;
-        margin-bottom: 5px !important;
+        margin-bottom: 2px !important;
     }}
     
     
