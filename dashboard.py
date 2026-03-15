@@ -436,8 +436,8 @@ try:
             )
             fig_cast.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10)),
-                margin=dict(t=5, b=35, l=10, r=10), height=180, categoryorder='total ascending'
+                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10), categoryorder='total ascending'),
+                margin=dict(t=5, b=35, l=10, r=10), height=180
             )
             fig_cast.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
             st.plotly_chart(fig_cast, use_container_width=True)
@@ -455,8 +455,8 @@ try:
             )
             fig_country.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10)),
-                margin=dict(t=5, b=35, l=60, r=10), height=180, categoryorder='total ascending'
+                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10), categoryorder='total ascending'),
+                margin=dict(t=5, b=35, l=60, r=10), height=180
             )
             fig_country.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
             st.plotly_chart(fig_country, use_container_width=True)
