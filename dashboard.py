@@ -7,17 +7,6 @@ import os
 import ast
 import base64
 
-# Function to get base64 of an image
-def get_base64_of_bin_file(bin_file):
-    with open(bin_file, 'rb') as f:
-        data = f.read()
-    return base64.b64encode(data).decode()
-
-def get_img_with_href(local_img_path):
-    img_format = local_img_path.split('.')[-1]
-    binary_val = get_base64_of_bin_file(local_img_path)
-    return f'data:image/{img_format};base64,{binary_val}'
-
 # Set page config for a premium feel
 st.set_page_config(
     page_title="Netflix Analytics | Insights Dashboard",
@@ -31,27 +20,7 @@ NETFLIX_RED = "#E50914"
 NETFLIX_DARK = "#0e1117"
 NETFLIX_GREY = "#222222"
 WHITE = "#FFFFFF"
-# Minimal Essential CSS for Layout, Chrome & Branding
-st.markdown(f"""
-<style>
-    /* 1. App Background & Global Font */
-    .stApp {{ background-color: {NETFLIX_DARK}; color: {WHITE}; }}
-    
-    /* 2. Mandatory Zero-Padding for Single-Page Fit */
-    .block-container {{ padding-top: 0rem !important; padding-bottom: 0rem !important; padding-left: 1rem !important; padding-right: 1rem !important; }}
-    
-    /* 3. Hide Streamlit Chrome */
-    #MainMenu {{visibility: hidden;}}
-    footer {{visibility: hidden;}}
-    header {{visibility: hidden !important;}}
-    [data-testid="stHeader"] {{visibility: hidden !important;}}
-    
-    /* 4. Metric Styling (Red Values & Contrast) */
-    div[data-testid="stMetricValue"] {{ font-size: 1.3rem !important; font-weight: 700 !important; color: {NETFLIX_RED} !important; }}
-    div[data-testid="stMetricLabel"] {{ font-size: 0.8rem !important; color: #BBB !important; }}
-    div[data-testid="stMetric"] {{ background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 5px 10px !important; min-height: 50px !important; }}
-</style>
-""", unsafe_allow_html=True)
+# Zero-CSS Refactor: Relying on native Streamlit theme and layouts
 
 # Helper to parse list-like columns
 def parse_list_col(val):
@@ -172,7 +141,7 @@ try:
                                         (genre_stats['AvgScore'] >= genre_stats['AvgScore'].quantile(0.75))]
         if not high_quality_niche.empty:
             best_niche = high_quality_niche.sort_values('AvgScore', ascending=False).iloc[0]
-            deep_insights.append(f"<b>OPPORTUNITY MAP:</b> '{best_niche['Genre']}' is a high-performing niche (Avg Score: {best_niche['AvgScore']:.1f}) with low volume—potential for original content expansion.")
+            deep_insights.append(f"**OPPORTUNITY MAP:** '{best_niche['Genre']}' is a high-performing niche (Avg Score: {best_niche['AvgScore']:.1f}) with low volume—potential for original content expansion.")
 
         # 2. Creator Impact & Efficiency
         if not credits_df.empty:
@@ -182,53 +151,34 @@ try:
             dir_perf = dir_stats.groupby('name')['imdb_score'].mean().reset_index()
             if not dir_perf.empty:
                 top_perf_dir = dir_perf.sort_values('imdb_score', ascending=False).iloc[0]
-                deep_insights.append(f"<b>CREATOR IMPACT:</b> Director <b>{top_perf_dir['name']}</b> maintains a top-tier rating average (IMDb: {top_perf_dir['imdb_score']:.1f}) across selected titles.")
+                deep_insights.append(f"**CREATOR IMPACT:** Director **{top_perf_dir['name']}** maintains a top-tier rating average (IMDb: {top_perf_dir['imdb_score']:.1f}) across selected titles.")
 
         # 3. Format Strategy
         format_split = filtered_df['type'].value_counts()
         if len(format_split) > 1:
             movie_pct = (format_split.get('MOVIE', 0) / len(filtered_df)) * 100
             strategy_desc = "Movie-heavy" if movie_pct > 60 else "Series-focused" if movie_pct < 40 else "Balanced"
-            deep_insights.append(f"<b>STRATEGY PULSE:</b> The library currently shows a <b>{strategy_desc}</b> posture ({movie_pct:.0f}% Movies) for this segment.")
+            deep_insights.append(f"**STRATEGY PULSE:** The library currently shows a **{strategy_desc}** posture ({movie_pct:.0f}% Movies) for this segment.")
 
-    insight_ticker = "<br>".join([f"• {text}" for text in deep_insights]) if deep_insights else "No specific patterns detected in current view."
+    insight_text = "\n".join([f"* {text}" for text in deep_insights]) if deep_insights else "No specific patterns detected."
 
-    # --- Header Section (Brand Left, Expanded Insights Right) ---
+    # --- Header Section (100% Native Python) ---
     head_left, head_right = st.columns([1, 1.8])
 
     with head_left:
-        try:
-            logo_base64 = get_img_with_href("assets/logo.png")
-        except:
-            logo_base64 = ""
-            
-        st.markdown(f"""
-            <div style="display: flex; align-items: center; justify-content: flex-start; background: rgba(255,255,255,0.03); padding: 8px 15px; border-radius: 12px; border-left: 4px solid {NETFLIX_RED}; height: 85px; gap: 12px;">
-                <img src="{logo_base64}" width="45">
-                <div style="text-align: left;">
-                    <h1 style="margin: 0; padding: 0; font-size: 1.8rem; color: {WHITE}; letter-spacing: 1px; font-weight: 800; line-height: 1;">
-                        NETFLIX <span style="color: {NETFLIX_RED};">ANALYTICS</span>
-                    </h1>
-                    <p style="margin: 0; color: #888; font-size: 0.75rem; text-transform: uppercase;">Library Intelligence Hub</p>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+        st.image("assets/logo.png", width=60)
+        st.title("NETFLIX ANALYTICS")
+        st.caption("Library Intelligence Hub")
 
     with head_right:
-        st.markdown(f"""
-            <div style="background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); border-right: 4px solid {NETFLIX_RED}; height: 85px; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
-                <div style="color: #BBB; font-size: 0.85rem; line-height: 1.3; width: 100%;">
-                    {insight_ticker}
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+        st.info(f"**Intelligence Pulse:**\n\n{insight_text}")
 
     # Preserve state for static charts (Genre Composition)
     base_filtered_df = filtered_df.copy()
 
     # --- Row 1: Header Slicer (Genre Pills Master) ---
-    st.markdown("<div style='margin-top: 5px;'></div>", unsafe_allow_html=True)
-    _, pill_col, _ = st.columns([1, 4, 1])
+    st.write("") # Spacer
+    pill_col = st.columns([1, 4, 1])[1]
     with pill_col:
         top_genres_master = ["All"] + sorted(list(df['listed_in'].explode().value_counts().head(8).index))
         selected_pill = st.pills(
@@ -245,7 +195,7 @@ try:
     col_kpi, col_trend, col_sun = st.columns([1, 1.5, 1])
     
     with col_kpi:
-        st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 8px; text-transform: uppercase;'>Library Overview</h3>", unsafe_allow_html=True)
+        st.subheader("Library Overview")
         # 2x2 Grid for compact KPIs
         k_r1_c1, k_r1_c2 = st.columns(2)
         k_r2_c1, k_r2_c2 = st.columns(2)
@@ -266,7 +216,7 @@ try:
             trend_df = trend_df[trend_df['count'] > 0]
             trend_df.columns = ['Year', 'Titles Added']
             
-            st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Acquisition Trend</h3>", unsafe_allow_html=True)
+            st.subheader("Acquisition Trend")
             with st.container(border=True):
                 fig_trend = px.area(
                     trend_df, x='Year', y='Titles Added', line_shape='spline',
@@ -287,7 +237,7 @@ try:
         top_type_genres = top_type_genres.sort_values(['type', 'count'], ascending=[True, False])
         top_type_genres = top_type_genres.groupby('type').head(5).reset_index(drop=True)
 
-        st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 8px; text-transform: uppercase;'>Genre Split</h3>", unsafe_allow_html=True)
+        st.subheader("Genre Split")
         with st.container(border=True):
             fig_sun = px.sunburst(
                 top_type_genres, path=['type', 'listed_in'], values='count', color='type',
@@ -311,7 +261,7 @@ try:
 
     with col_cast:
         if not cast_counts.empty:
-            st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Top Cast Distribution</span></div>", unsafe_allow_html=True)
+            st.subheader("Top Cast")
             with st.container(border=True):
                 fig_cast = px.bar(
                     cast_counts, x='Count', y='Actor', orientation='h',
@@ -335,7 +285,7 @@ try:
             top_actors = act_stats.sort_values(['Score', 'Titles'], ascending=False).head(5)
             
             if not top_actors.empty:
-                st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Top Performing Actors</span></div>", unsafe_allow_html=True)
+                st.subheader("Top Actors")
                 with st.container(border=True):
                     fig_act = px.bar(
                         top_actors, x='Score', y='Actor', orientation='h',
@@ -359,7 +309,7 @@ try:
             top_dirs = dir_stats.sort_values(['Score', 'Titles'], ascending=False).head(5)
             
             if not top_dirs.empty:
-                st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Top Performing Directors</span></div>", unsafe_allow_html=True)
+                st.subheader("Top Directors")
                 with st.container(border=True):
                     fig_dir = px.bar(
                         top_dirs, x='Score', y='Director', orientation='h',
@@ -382,7 +332,7 @@ try:
             rating_counts = filtered_df['age_certification'].value_counts().reset_index()
             rating_counts.columns = ['Rating', 'Count']
             
-            st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Maturity Profile</span></div>", unsafe_allow_html=True)
+            st.subheader("Maturity Profile")
             with st.container(border=True):
                 fig_rating = px.bar(
                     rating_counts, x='Rating', y='Count',
@@ -402,7 +352,7 @@ try:
             country_counts = countries_series.value_counts().head(5).reset_index()
             country_counts.columns = ['Country', 'Count']
             
-            st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Regional Presence</h3>", unsafe_allow_html=True)
+            st.subheader("Regional Presence")
             with st.container(border=True):
                 fig_country = px.bar(
                     country_counts, x='Count', y='Country', orientation='h',
