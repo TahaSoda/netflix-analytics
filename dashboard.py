@@ -48,7 +48,7 @@ st.markdown(f"""
     
     /* Reduce top padding */
     .block-container {{
-        padding-top: 0.1rem !important;
+        padding-top: 0rem !important;
         padding-bottom: 0rem !important;
         padding-left: 1rem !important;
         padding-right: 1rem !important;
@@ -79,9 +79,8 @@ st.markdown(f"""
     /* Hide Streamlit elements but KEEP sidebar toggle */
     #MainMenu {{visibility: hidden;}}
     footer {{visibility: hidden;}}
-    header[data-testid="stHeader"] {{
-        background: transparent !important;
-    }}
+    header {{visibility: hidden !important;}}
+    [data-testid="stHeader"] {{visibility: hidden !important;}}
     
     /* Compact Header */
     .header-container {{
@@ -319,7 +318,7 @@ try:
             fig_trend.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                 xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333'),
-                margin=dict(t=5, b=25, l=10, r=10), height=140
+                margin=dict(t=5, b=25, l=10, r=10), height=125
             )
             fig_trend.update_traces(fillcolor='rgba(229, 9, 20, 0.3)', hovertemplate="<b>Year: %{x}</b><br>Titles: %{y}<extra></extra>")
             st.plotly_chart(fig_trend, use_container_width=True)
@@ -338,7 +337,7 @@ try:
         )
         fig_sun.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-            margin=dict(t=0, b=0, l=0, r=0), height=140
+            margin=dict(t=0, b=0, l=0, r=0), height=125
         )
         fig_sun.update_traces(hovertemplate="<b>%{label}</b><br>Titles: %{value}<extra></extra>")
         st.plotly_chart(fig_sun, use_container_width=True)
@@ -362,7 +361,7 @@ try:
             fig_cast.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                 xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10), categoryorder='total ascending'),
-                margin=dict(t=5, b=25, l=10, r=10), height=170
+                margin=dict(t=5, b=25, l=10, r=10), height=140
             )
             fig_cast.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
             st.plotly_chart(fig_cast, use_container_width=True, config={'displayModeBar': False})
@@ -385,7 +384,7 @@ try:
                 fig_act.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                     xaxis=dict(title=None, gridcolor='#333', range=[0, 10]), yaxis=dict(title=None, gridcolor='#333', categoryorder='total ascending'),
-                    margin=dict(t=5, b=25, l=10, r=10), height=170, coloraxis_showscale=False
+                    margin=dict(t=5, b=25, l=10, r=10), height=140, coloraxis_showscale=False
                 )
                 fig_act.update_traces(hovertemplate="<b>%{y}</b><br>Score: %{x:.1f}<extra></extra>", marker_line_width=0)
                 st.plotly_chart(fig_act, use_container_width=True, config={'displayModeBar': False})
@@ -409,7 +408,7 @@ try:
                     paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                     xaxis=dict(title=None, gridcolor='#333', range=[0, 10]),
                     yaxis=dict(title=None, gridcolor='#333', categoryorder='total ascending'),
-                    margin=dict(t=5, b=25, l=10, r=10), height=170, coloraxis_showscale=False
+                    margin=dict(t=5, b=25, l=10, r=10), height=140, coloraxis_showscale=False
                 )
                 fig_dir.update_traces(hovertemplate="<b>%{y}</b><br>Score: %{x:.1f}<extra></extra>", marker_line_width=0)
                 st.plotly_chart(fig_dir, use_container_width=True, config={'displayModeBar': False})
@@ -430,7 +429,7 @@ try:
             fig_rating.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                 xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333'),
-                margin=dict(t=5, b=25, l=10, r=10), height=170
+                margin=dict(t=5, b=25, l=10, r=10), height=140
             )
             fig_rating.update_traces(hovertemplate="<b>Rating: %{x}</b><br>Titles: %{y}<extra></extra>")
             st.plotly_chart(fig_rating, use_container_width=True, config={'displayModeBar': False})
@@ -449,7 +448,7 @@ try:
             fig_country.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                 xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10), categoryorder='total ascending'),
-                margin=dict(t=5, b=35, l=60, r=10), height=180
+                margin=dict(t=5, b=25, l=60, r=10), height=130
             )
             fig_country.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
             st.plotly_chart(fig_country, use_container_width=True)
