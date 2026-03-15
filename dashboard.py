@@ -439,6 +439,51 @@ try:
             fig_country.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
             st.plotly_chart(fig_country, use_container_width=True)
 
+    # --- Row 4: Cross-CSV Analysis (Added Chart) ---
+    st.markdown("<div style='margin-top: 5px;'></div>", unsafe_allow_html=True)
+    
+    if not filtered_df.empty and not credits_df.empty:
+        # Join dataframes for cross-analysis
+        titles_lite = filtered_df[['id', 'imdb_score', 'title']]
+        actors_lite = credits_df[credits_df['role'] == 'ACTOR'][['id', 'name']]
+        
+        merged_data = pd.merge(actors_lite, titles_lite, on='id')
+        
+        # Aggregate stats per actor
+        actor_stats = merged_data.groupby('name').agg({
+            'id': 'count',
+            'imdb_score': 'mean'
+        }).reset_index()
+        actor_stats.columns = ['Actor', 'Title Count', 'Avg IMDb Score']
+        
+        # Filter for significant volume
+        top_performers = actor_stats[actor_stats['Title Count'] >= 2].sort_values('Avg IMDb Score', ascending=False).head(15)
+        
+        if not top_performers.empty:
+            fig_perf = px.scatter(
+                top_performers,
+                x='Title Count',
+                y='Avg IMDb Score',
+                text='Actor',
+                size='Title Count',
+                color='Avg IMDb Score',
+                title="Talent Efficiency: Quality vs. Quantity",
+                color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]]
+            )
+            fig_perf.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font=dict(color=WHITE),
+                xaxis=dict(title="Volume (Titles)", gridcolor='#333', dtick=1),
+                yaxis=dict(title="Avg IMDb Score", gridcolor='#333'),
+                margin=dict(t=30, b=40, l=10, r=10),
+                height=220,
+                title_font_size=12,
+                coloraxis_showscale=False
+            )
+            fig_perf.update_traces(textposition='top center', marker=dict(line=dict(width=1, color='rgba(255,255,255,0.2)')))
+            st.plotly_chart(fig_perf, use_container_width=True)
+
     # --- Row 4: Strategic AI Insights ---
     st.markdown("<div style='margin-top: 5px;'></div>", unsafe_allow_html=True)
     
