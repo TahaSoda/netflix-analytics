@@ -176,20 +176,6 @@ try:
     # Preserve state for static charts (Genre Composition)
     base_filtered_df = filtered_df.copy()
 
-    # --- Row 1: Header Slicer (Genre Pills Master) ---
-    pill_col = st.columns([1, 6, 1])[1]
-    with pill_col:
-        top_genres_master = ["All"] + sorted(list(df['listed_in'].explode().value_counts().head(8).index))
-        selected_pill = st.pills(
-            "Explore by Genre",
-            options=top_genres_master,
-            selection_mode="single",
-            default="All",
-            key="genre_pills_master"
-        )
-    if selected_pill and selected_pill != "All":
-        filtered_df = filtered_df[filtered_df['listed_in'].apply(lambda x: selected_pill in x if isinstance(x, list) else False)]
-
     # --- Row 1: Metrics, Trend & Genre Split (3 Symmetric Columns) ---
     m_count = len(filtered_df[filtered_df['type'].str.upper().str.contains('MOVIE', na=False)])
     tv_count = len(filtered_df[filtered_df['type'].str.upper().str.contains('SHOW', na=False)])
