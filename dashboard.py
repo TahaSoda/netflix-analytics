@@ -31,114 +31,25 @@ NETFLIX_RED = "#E50914"
 NETFLIX_DARK = "#0e1117"
 NETFLIX_GREY = "#222222"
 WHITE = "#FFFFFF"
-
-# Custom CSS for Premium Design & Single-Page Fit
+# Minimal Essential CSS for Layout, Chrome & Branding
 st.markdown(f"""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+    /* 1. App Background & Global Font */
+    .stApp {{ background-color: {NETFLIX_DARK}; color: {WHITE}; }}
     
-    html, body, [class*="css"] {{
-        font-family: 'Inter', sans-serif;
-    }}
+    /* 2. Mandatory Zero-Padding for Single-Page Fit */
+    .block-container {{ padding-top: 0rem !important; padding-bottom: 0rem !important; padding-left: 1rem !important; padding-right: 1rem !important; }}
     
-    .stApp {{
-        background-color: {NETFLIX_DARK};
-        color: {WHITE};
-    }}
-    
-    /* Reduce top padding */
-    .block-container {{
-        padding-top: 0rem !important;
-        padding-bottom: 0rem !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-    }}
-    
-    /* Sticky Sidebar Style */
-    section[data-testid="stSidebar"] {{
-        background-color: {NETFLIX_GREY};
-        border-right: 1px solid #333;
-    }}
-    /* Compact Glassmorphism Charts with No Scrollbars */
-    .stPlotlyChart {{
-        background: rgba(255, 255, 255, 0.05) !important;
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 5px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        margin-bottom: 5px !important;
-        overflow: hidden !important;
-    }}
-    
-    .stPlotlyChart > div {{
-        overflow: hidden !important;
-        background: transparent !important;
-    }}
-
-    /* Hide Streamlit elements but KEEP sidebar toggle */
+    /* 3. Hide Streamlit Chrome */
     #MainMenu {{visibility: hidden;}}
     footer {{visibility: hidden;}}
     header {{visibility: hidden !important;}}
     [data-testid="stHeader"] {{visibility: hidden !important;}}
     
-    /* Compact Header */
-    .header-container {{
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid {NETFLIX_RED};
-        margin-bottom: 20px;
-    }}
-    
-    /* Metric Card Styling - Compact */
-    div[data-testid="stMetric"] {{
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 5px 10px !important;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease;
-        min-height: 60px !important;
-    }}
-    
-    div[data-testid="stMetric"]:hover {{
-        transform: translateY(-2px);
-        background: rgba(255, 255, 255, 0.08);
-        border-color: {NETFLIX_RED};
-    }}
-    
-    div[data-testid="stMetricValue"] {{
-        font-size: 1.3rem !important;
-        font-weight: 700 !important;
-        line-height: 1 !important;
-        color: {NETFLIX_RED} !important;
-    }}
-    
-    div[data-testid="stMetricLabel"] {{
-        font-size: 0.8rem !important;
-        color: #BBB !important;
-        margin-bottom: 0px !important;
-        line-height: 0.9 !important;
-    }}
-    
-    /* Ensure metric content fits */
-    div[data-testid="stMetric"] > div {{
-        padding: 0 !important;
-    }}
-    
-    
-    h1, h2, h3 {{
-        color: {WHITE};
-        font-weight: 700;
-        margin-top: 0px !important;
-        margin-bottom: 10px !important;
-    }}
-    
-    .stSubheader {{
-        font-size: 1.1rem !important;
-    }}
+    /* 4. Metric Styling (Red Values & Contrast) */
+    div[data-testid="stMetricValue"] {{ font-size: 1.3rem !important; font-weight: 700 !important; color: {NETFLIX_RED} !important; }}
+    div[data-testid="stMetricLabel"] {{ font-size: 0.8rem !important; color: #BBB !important; }}
+    div[data-testid="stMetric"] {{ background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 5px 10px !important; min-height: 50px !important; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -356,17 +267,18 @@ try:
             trend_df.columns = ['Year', 'Titles Added']
             
             st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Acquisition Trend</h3>", unsafe_allow_html=True)
-            fig_trend = px.area(
-                trend_df, x='Year', y='Titles Added', line_shape='spline',
-                color_discrete_sequence=[NETFLIX_RED]
-            )
-            fig_trend.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333'),
-                margin=dict(t=5, b=25, l=10, r=10), height=125
-            )
-            fig_trend.update_traces(fillcolor='rgba(229, 9, 20, 0.3)', hovertemplate="<b>Year: %{x}</b><br>Titles: %{y}<extra></extra>")
-            st.plotly_chart(fig_trend, use_container_width=True)
+            with st.container(border=True):
+                fig_trend = px.area(
+                    trend_df, x='Year', y='Titles Added', line_shape='spline',
+                    color_discrete_sequence=[NETFLIX_RED]
+                )
+                fig_trend.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
+                    xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333'),
+                    margin=dict(t=5, b=25, l=10, r=10), height=115
+                )
+                fig_trend.update_traces(fillcolor='rgba(229, 9, 20, 0.3)', hovertemplate="<b>Year: %{x}</b><br>Titles: %{y}<extra></extra>")
+                st.plotly_chart(fig_trend, use_container_width=True, key="trend_chart")
 
     with col_sun:
         # Sunburst uses base_filtered_df (ignores genre pills)
@@ -376,16 +288,17 @@ try:
         top_type_genres = top_type_genres.groupby('type').head(5).reset_index(drop=True)
 
         st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 8px; text-transform: uppercase;'>Genre Split</h3>", unsafe_allow_html=True)
-        fig_sun = px.sunburst(
-            top_type_genres, path=['type', 'listed_in'], values='count', color='type',
-            color_discrete_map={'MOVIE': NETFLIX_RED, 'SHOW': "#444444", 'Movie': NETFLIX_RED, 'TV Show': "#444444"}
-        )
-        fig_sun.update_layout(
-            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-            margin=dict(t=0, b=0, l=0, r=0), height=125
-        )
-        fig_sun.update_traces(hovertemplate="<b>%{label}</b><br>Titles: %{value}<extra></extra>")
-        st.plotly_chart(fig_sun, use_container_width=True)
+        with st.container(border=True):
+            fig_sun = px.sunburst(
+                top_type_genres, path=['type', 'listed_in'], values='count', color='type',
+                color_discrete_map={'MOVIE': NETFLIX_RED, 'SHOW': "#444444", 'Movie': NETFLIX_RED, 'TV Show': "#444444"}
+            )
+            fig_sun.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
+                margin=dict(t=0, b=0, l=0, r=0), height=115
+            )
+            fig_sun.update_traces(hovertemplate="<b>%{label}</b><br>Titles: %{value}<extra></extra>")
+            st.plotly_chart(fig_sun, use_container_width=True, key="sun_chart")
 
     # --- Row 2: Cast, Actors & Directors (Talent Hub) ---
     col_cast, col_act, col_dir = st.columns(3)
@@ -399,17 +312,18 @@ try:
     with col_cast:
         if not cast_counts.empty:
             st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Top Cast Distribution</span></div>", unsafe_allow_html=True)
-            fig_cast = px.bar(
-                cast_counts, x='Count', y='Actor', orientation='h',
-                color_discrete_sequence=[NETFLIX_RED]
-            )
-            fig_cast.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10), categoryorder='total ascending'),
-                margin=dict(t=5, b=25, l=10, r=10), height=140
-            )
-            fig_cast.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
-            st.plotly_chart(fig_cast, use_container_width=True, config={'displayModeBar': False})
+            with st.container(border=True):
+                fig_cast = px.bar(
+                    cast_counts, x='Count', y='Actor', orientation='h',
+                    color_discrete_sequence=[NETFLIX_RED]
+                )
+                fig_cast.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
+                    xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10), categoryorder='total ascending'),
+                    margin=dict(t=5, b=25, l=10, r=10), height=130
+                )
+                fig_cast.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
+                st.plotly_chart(fig_cast, use_container_width=True, config={'displayModeBar': False}, key="cast_chart")
 
     with col_act:
         if not filtered_df.empty and not credits_df.empty:
@@ -422,17 +336,18 @@ try:
             
             if not top_actors.empty:
                 st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Top Performing Actors</span></div>", unsafe_allow_html=True)
-                fig_act = px.bar(
-                    top_actors, x='Score', y='Actor', orientation='h',
-                    color='Score', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]]
-                )
-                fig_act.update_layout(
-                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                    xaxis=dict(title=None, gridcolor='#333', range=[0, 10]), yaxis=dict(title=None, gridcolor='#333', categoryorder='total ascending'),
-                    margin=dict(t=5, b=25, l=10, r=10), height=140, coloraxis_showscale=False
-                )
-                fig_act.update_traces(hovertemplate="<b>%{y}</b><br>Score: %{x:.1f}<extra></extra>", marker_line_width=0)
-                st.plotly_chart(fig_act, use_container_width=True, config={'displayModeBar': False})
+                with st.container(border=True):
+                    fig_act = px.bar(
+                        top_actors, x='Score', y='Actor', orientation='h',
+                        color='Score', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]]
+                    )
+                    fig_act.update_layout(
+                        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
+                        xaxis=dict(title=None, gridcolor='#333', range=[0, 10]), yaxis=dict(title=None, gridcolor='#333', categoryorder='total ascending'),
+                        margin=dict(t=5, b=25, l=10, r=10), height=130, coloraxis_showscale=False
+                    )
+                    fig_act.update_traces(hovertemplate="<b>%{y}</b><br>Score: %{x:.1f}<extra></extra>", marker_line_width=0)
+                    st.plotly_chart(fig_act, use_container_width=True, config={'displayModeBar': False}, key="actor_chart")
 
     with col_dir:
         if not filtered_df.empty and not credits_df.empty:
@@ -445,18 +360,19 @@ try:
             
             if not top_dirs.empty:
                 st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Top Performing Directors</span></div>", unsafe_allow_html=True)
-                fig_dir = px.bar(
-                    top_dirs, x='Score', y='Director', orientation='h',
-                    color='Score', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]]
-                )
-                fig_dir.update_layout(
-                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                    xaxis=dict(title=None, gridcolor='#333', range=[0, 10]),
-                    yaxis=dict(title=None, gridcolor='#333', categoryorder='total ascending'),
-                    margin=dict(t=5, b=25, l=10, r=10), height=140, coloraxis_showscale=False
-                )
-                fig_dir.update_traces(hovertemplate="<b>%{y}</b><br>Score: %{x:.1f}<extra></extra>", marker_line_width=0)
-                st.plotly_chart(fig_dir, use_container_width=True, config={'displayModeBar': False})
+                with st.container(border=True):
+                    fig_dir = px.bar(
+                        top_dirs, x='Score', y='Director', orientation='h',
+                        color='Score', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]]
+                    )
+                    fig_dir.update_layout(
+                        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
+                        xaxis=dict(title=None, gridcolor='#333', range=[0, 10]),
+                        yaxis=dict(title=None, gridcolor='#333', categoryorder='total ascending'),
+                        margin=dict(t=5, b=25, l=10, r=10), height=130, coloraxis_showscale=False
+                    )
+                    fig_dir.update_traces(hovertemplate="<b>%{y}</b><br>Score: %{x:.1f}<extra></extra>", marker_line_width=0)
+                    st.plotly_chart(fig_dir, use_container_width=True, config={'displayModeBar': False}, key="director_chart")
 
     # --- Row 3: Maturity & Geography (2 Columns) ---
     col_mat_row3, col_geo = st.columns(2)
@@ -467,17 +383,18 @@ try:
             rating_counts.columns = ['Rating', 'Count']
             
             st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Maturity Profile</span></div>", unsafe_allow_html=True)
-            fig_rating = px.bar(
-                rating_counts, x='Rating', y='Count',
-                color_discrete_sequence=[NETFLIX_RED]
-            )
-            fig_rating.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333'),
-                margin=dict(t=5, b=25, l=10, r=10), height=140
-            )
-            fig_rating.update_traces(hovertemplate="<b>Rating: %{x}</b><br>Titles: %{y}<extra></extra>")
-            st.plotly_chart(fig_rating, use_container_width=True, config={'displayModeBar': False})
+            with st.container(border=True):
+                fig_rating = px.bar(
+                    rating_counts, x='Rating', y='Count',
+                    color_discrete_sequence=[NETFLIX_RED]
+                )
+                fig_rating.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
+                    xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333'),
+                    margin=dict(t=5, b=25, l=10, r=10), height=120
+                )
+                fig_rating.update_traces(hovertemplate="<b>Rating: %{x}</b><br>Titles: %{y}<extra></extra>")
+                st.plotly_chart(fig_rating, use_container_width=True, config={'displayModeBar': False}, key="rating_chart")
 
     with col_geo:
         if 'country' in filtered_df.columns:
@@ -486,17 +403,18 @@ try:
             country_counts.columns = ['Country', 'Count']
             
             st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Regional Presence</h3>", unsafe_allow_html=True)
-            fig_country = px.bar(
-                country_counts, x='Count', y='Country', orientation='h',
-                color_discrete_sequence=[NETFLIX_RED]
-            )
-            fig_country.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10), categoryorder='total ascending'),
-                margin=dict(t=5, b=25, l=60, r=10), height=130
-            )
-            fig_country.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
-            st.plotly_chart(fig_country, use_container_width=True)
+            with st.container(border=True):
+                fig_country = px.bar(
+                    country_counts, x='Count', y='Country', orientation='h',
+                    color_discrete_sequence=[NETFLIX_RED]
+                )
+                fig_country.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
+                    xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10), categoryorder='total ascending'),
+                    margin=dict(t=5, b=25, l=60, r=10), height=120
+                )
+                fig_country.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
+                st.plotly_chart(fig_country, use_container_width=True, key="country_chart")
 
     # Library Intelligence engine is now integrated into the header
 
