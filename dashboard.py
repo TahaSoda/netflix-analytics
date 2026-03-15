@@ -55,7 +55,51 @@ def load_data():
         if col in titles_df.columns:
             titles_df[col] = titles_df[col].apply(parse_list_col)
             
+    # Set index for fast lookup
+    if not credits_df.empty:
+        credits_df = credits_df.set_index('id')
+            
     return titles_df, credits_df
+
+@st.cache_data
+def get_filter_options(df):
+    genres = sorted(list(df['listed_in'].explode().dropna().unique()))
+    countries = sorted(list(df['country'].explode().dropna().unique()))
+    return genres, countries
+
+@st.cache_data
+def get_deep_insights(filtered_df_hash, _filtered_df, _credits_df):
+    deep_insights = []
+    if not _filtered_df.empty:
+        # 1. Genre Opportunity
+        genre_stats = _filtered_df.explode('listed_in').groupby('listed_in').agg({
+            'id': 'count', 'imdb_score': 'mean'
+        }).reset_index()
+        genre_stats.columns = ['Genre', 'Count', 'AvgScore']
+        high_quality_niche = genre_stats[(genre_stats['Count'] <= genre_stats['Count'].median()) & 
+                                        (genre_stats['AvgScore'] >= genre_stats['AvgScore'].quantile(0.75))]
+        if not high_quality_niche.empty:
+            best_niche = high_quality_niche.sort_values('AvgScore', ascending=False).iloc[0]
+            deep_insights.append(f"**OPPORTUNITY MAP:** '{best_niche['Genre']}' is a high-performing niche (Avg Score: {best_niche['AvgScore']:.1f}) with low volume.")
+
+        # 2. Creator Impact
+        if not _credits_df.empty:
+            f_ids = _filtered_df['id'].unique()
+            f_credits = _credits_df[_credits_df['id'].isin(f_ids)]
+            dir_stats = f_credits[f_credits['role'] == 'DIRECTOR'].merge(_filtered_df[['id', 'imdb_score']], on='id')
+            dir_perf = dir_stats.groupby('name')['imdb_score'].mean().reset_index()
+            if not dir_perf.empty:
+                top_perf_dir = dir_perf.sort_values('imdb_score', ascending=False).iloc[0]
+                deep_insights.append(f"**CREATOR IMPACT:** Director **{top_perf_dir['name']}** maintains top-tier ratings ({top_perf_dir['imdb_score']:.1f}).")
+
+        # 3. Format Strategy
+        format_split = _filtered_df['type'].value_counts()
+        if len(format_split) > 1:
+            movie_pct = (format_split.get('MOVIE', 0) / len(_filtered_df)) * 100
+            strategy_desc = "Movie-heavy" if movie_pct > 60 else "Series-focused" if movie_pct < 40 else "Balanced"
+            deep_insights.append(f"**STRATEGY PULSE:** Segment posture is **{strategy_desc}** ({movie_pct:.0f}% Movies).")
+
+    return "\n".join([f"* {text}" for text in deep_insights]) if deep_insights else "No specific patterns detected."
 
 try:
     df, credits_df = load_data()
@@ -69,33 +113,19 @@ try:
         
         # Core Selection
         content_types = sorted(df['type'].unique())
-        content_selection = st.multiselect(
-            "Content Type",
-            options=content_types,
-            default=list(content_types)
-        )
+        content_selection = st.multiselect("Content Type", options=content_types, default=list(content_types))
         
-        years = st.slider(
-            "Release Years",
-            min_value=int(df['release_year'].min()),
-            max_value=int(df['release_year'].max()),
-            value=(int(df['release_year'].min()), int(df['release_year'].max()))
-        )
+        years = st.slider("Release Years", min_value=int(df['release_year'].min()), max_value=int(df['release_year'].max()),
+                          value=(int(df['release_year'].min()), int(df['release_year'].max())))
         
         st.markdown("---")
-        
-        # Search Box
         search_query = st.text_input("🔍 Search Titles", placeholder="e.g. Breaking Bad")
         
-        # Genre Multi-select (Exploded)
-        all_genres = sorted(list(df['listed_in'].explode().dropna().unique()))
+        # Cached Filter Options
+        all_genres, all_countries = get_filter_options(df)
         selected_genres = st.multiselect("Filter by Genre", options=all_genres)
-        
-        # Country Multi-select (Exploded)
-        all_countries = sorted(list(df['country'].explode().dropna().unique()))
         selected_countries = st.multiselect("Filter by Country", options=all_countries)
         
-        # Sorting
         st.markdown("---")
         sort_by = st.selectbox("Sort Library By", options=["Release Year", "Title", "IMDb Score"])
         
@@ -144,40 +174,9 @@ try:
     sort_map = {"Release Year": "release_year", "Title": "title", "IMDb Score": "imdb_score"}
     if sort_map[sort_by] in filtered_df.columns:
         filtered_df = filtered_df.sort_values(by=sort_map[sort_by], ascending=(sort_by == "Title"))
-    # --- Deep Intelligence Engine ---
-    deep_insights = []
-    if not filtered_df.empty:
-        # 1. Genre Opportunity Analysis (Hidden Gems)
-        genre_stats = filtered_df.explode('listed_in').groupby('listed_in').agg({
-            'id': 'count',
-            'imdb_score': 'mean'
-        }).reset_index()
-        genre_stats.columns = ['Genre', 'Count', 'AvgScore']
-        
-        high_quality_niche = genre_stats[(genre_stats['Count'] <= genre_stats['Count'].median()) & 
-                                        (genre_stats['AvgScore'] >= genre_stats['AvgScore'].quantile(0.75))]
-        if not high_quality_niche.empty:
-            best_niche = high_quality_niche.sort_values('AvgScore', ascending=False).iloc[0]
-            deep_insights.append(f"**OPPORTUNITY MAP:** '{best_niche['Genre']}' is a high-performing niche (Avg Score: {best_niche['AvgScore']:.1f}) with low volume—potential for original content expansion.")
-
-        # 2. Creator Impact & Efficiency
-        if not credits_df.empty:
-            f_ids = filtered_df['id'].unique()
-            f_credits = credits_df[credits_df['id'].isin(f_ids)]
-            dir_stats = f_credits[f_credits['role'] == 'DIRECTOR'].merge(filtered_df[['id', 'imdb_score']], on='id')
-            dir_perf = dir_stats.groupby('name')['imdb_score'].mean().reset_index()
-            if not dir_perf.empty:
-                top_perf_dir = dir_perf.sort_values('imdb_score', ascending=False).iloc[0]
-                deep_insights.append(f"**CREATOR IMPACT:** Director **{top_perf_dir['name']}** maintains a top-tier rating average (IMDb: {top_perf_dir['imdb_score']:.1f}) across selected titles.")
-
-        # 3. Format Strategy
-        format_split = filtered_df['type'].value_counts()
-        if len(format_split) > 1:
-            movie_pct = (format_split.get('MOVIE', 0) / len(filtered_df)) * 100
-            strategy_desc = "Movie-heavy" if movie_pct > 60 else "Series-focused" if movie_pct < 40 else "Balanced"
-            deep_insights.append(f"**STRATEGY PULSE:** The library currently shows a **{strategy_desc}** posture ({movie_pct:.0f}% Movies) for this segment.")
-
-    insight_text = "\n".join([f"* {text}" for text in deep_insights]) if deep_insights else "No specific patterns detected."
+    # --- Deep Intelligence Engine (Cached) ---
+    df_hash = pd.util.hash_pandas_object(filtered_df).sum()
+    insight_text = get_deep_insights(df_hash, filtered_df, credits_df)
 
     # --- Sidebar Refinement & Intelligence Hub ---
     with st.sidebar:
@@ -246,21 +245,21 @@ try:
                 margin=dict(t=10, b=10, l=10, r=10), height=160, coloraxis_showscale=False)
             fig_tree.update_traces(textinfo="label+value")
             
-            # Interactive Selection
+            # Interactive Selection (with guard)
             event = st.plotly_chart(fig_tree, use_container_width=True, key="tree_chart", config={'displayModeBar': False}, on_select="rerun")
             
             if event and event.get("selection", {}).get("points"):
                 clicked = event["selection"]["points"][0].get("label")
-                if clicked and clicked != "All":
+                if clicked and clicked != "All" and clicked != active_genre:
                     st.session_state['chart_filter_genre'] = clicked
                     st.rerun()
 
     # --- Row 2: Deep Analysis (4 Columns, Region dominant) ---
     c1, c3, c4, c5 = st.columns([1, 1, 1, 2])
     
-    # Data prep
+    # Data prep (Optimized with Index)
     filtered_ids = filtered_df['id'].unique()
-    credits_filter = credits_df[credits_df['id'].isin(filtered_ids)]
+    credits_filter = credits_df.loc[credits_df.index.intersection(filtered_ids)].reset_index()
     
     with c1:
         with st.container(border=True):
@@ -306,12 +305,12 @@ try:
                 margin=dict(t=5, b=25, l=10, r=10), height=160, coloraxis_showscale=False)
             fig_geo.update_traces(textinfo="label+value")
             
-            # Interactive Selection
+            # Interactive Selection (with guard)
             reg_event = st.plotly_chart(fig_geo, use_container_width=True, key="c5", config={'displayModeBar': False}, on_select="rerun")
             
             if reg_event and reg_event.get("selection", {}).get("points"):
                 reg_clicked = reg_event["selection"]["points"][0].get("label")
-                if reg_clicked and reg_clicked != "All":
+                if reg_clicked and reg_clicked != "All" and reg_clicked != active_region:
                     st.session_state['chart_filter_region'] = reg_clicked
                     st.rerun()
 
