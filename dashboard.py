@@ -286,28 +286,55 @@ try:
     if selected_pill and selected_pill != "All":
         filtered_df = filtered_df[filtered_df['listed_in'].apply(lambda x: selected_pill in x if isinstance(x, list) else False)]
 
-    # --- Row 2: Key Metrics (Full Width) ---
-    met1, met2, met3, met4 = st.columns(4)
-    with met1:
-        st.metric("Library", f"{len(filtered_df):,}")
-    with met2:
-        m_count = len(filtered_df[filtered_df['type'].str.upper().str.contains('MOVIE', na=False)])
-        st.metric("Movies", f"{m_count:,}")
-    with met3:
-        tv_count = len(filtered_df[filtered_df['type'].str.upper().str.contains('SHOW', na=False)])
-        st.metric("TV Shows", f"{tv_count:,}")
-    with met4:
-        if tv_count > 0:
-            ratio = round(m_count / tv_count, 1)
-            st.metric("M:S Ratio", f"{ratio}:1")
-        else:
-            st.metric("M:S Ratio", "N/A")
-
-
-    # --- Row 2: Maturity & Composition (2 Columns) ---
-    col1, col2 = st.columns(2)
+    # --- Row 1: Key Metrics & Genre Composition ---
+    col_kpi, col_sun = st.columns([2, 1])
     
-    with col1:
+    with col_kpi:
+        met1, met2, met3, met4 = st.columns(4)
+        with met1:
+            st.metric("Library", f"{len(filtered_df):,}")
+        with met2:
+            m_count = len(filtered_df[filtered_df['type'].str.upper().str.contains('MOVIE', na=False)])
+            st.metric("Movies", f"{m_count:,}")
+        with met3:
+            tv_count = len(filtered_df[filtered_df['type'].str.upper().str.contains('SHOW', na=False)])
+            st.metric("TV Shows", f"{tv_count:,}")
+        with met4:
+            if tv_count > 0:
+                ratio = round(m_count / tv_count, 1)
+                st.metric("M:S Ratio", f"{ratio}:1")
+            else:
+                st.metric("M:S Ratio", "N/A")
+
+    with col_sun:
+        # Sunburst uses base_filtered_df (ignores genre pills)
+        sun_df = base_filtered_df[['type', 'listed_in']].explode('listed_in')
+        top_type_genres = sun_df.groupby(['type', 'listed_in']).size().reset_index(name='count')
+        top_type_genres = top_type_genres.sort_values(['type', 'count'], ascending=[True, False])
+        top_type_genres = top_type_genres.groupby('type').head(5).reset_index(drop=True)
+
+        fig_sun = px.sunburst(
+            top_type_genres,
+            path=['type', 'listed_in'],
+            values='count',
+            color='type',
+            color_discrete_map={'MOVIE': NETFLIX_RED, 'SHOW': "#444444", 'Movie': NETFLIX_RED, 'TV Show': "#444444"}
+        )
+        fig_sun.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(color=WHITE),
+            margin=dict(t=10, b=10, l=10, r=10),
+            height=140,
+            title=None
+        )
+        fig_sun.update_traces(hovertemplate="<b>%{label}</b><br>Titles: %{value}<extra></extra>")
+        st.plotly_chart(fig_sun, use_container_width=True)
+
+    # --- Row 2: Maturity Profile & Talent Performance ---
+    col_mat, col_perf = st.columns(2)
+    
+    with col_mat:
         if 'age_certification' in filtered_df.columns:
             rating_counts = filtered_df['age_certification'].value_counts().reset_index()
             rating_counts.columns = ['Rating', 'Count']
@@ -326,175 +353,58 @@ try:
                 xaxis=dict(title=None, gridcolor='#333'),
                 yaxis=dict(title=None, gridcolor='#333'),
                 margin=dict(t=25, b=35, l=10, r=10),
-                height=165,
+                height=250,
                 title_font_size=12
             )
             fig_rating.update_traces(hovertemplate="<b>Rating: %{x}</b><br>Titles: %{y}<extra></extra>")
             st.plotly_chart(fig_rating, use_container_width=True)
 
-    with col2:
-        # Sunburst uses base_filtered_df (ignores genre pills)
-        sun_df = base_filtered_df[['type', 'listed_in']].explode('listed_in')
-        top_type_genres = sun_df.groupby(['type', 'listed_in']).size().reset_index(name='count')
-        top_type_genres = top_type_genres.sort_values(['type', 'count'], ascending=[True, False])
-        top_type_genres = top_type_genres.groupby('type').head(5).reset_index(drop=True)
-
-        fig_sun = px.sunburst(
-            top_type_genres,
-            path=['type', 'listed_in'],
-            values='count',
-            color='type',
-            color_discrete_map={'MOVIE': NETFLIX_RED, 'SHOW': "#444444", 'Movie': NETFLIX_RED, 'TV Show': "#444444"}
-        )
-        fig_sun.update_layout(
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            font=dict(color=WHITE),
-            margin=dict(t=15, b=10, l=10, r=10),
-            height=165,
-            title="Genre Composition",
-            title_font_size=12
-        )
-        fig_sun.update_traces(hovertemplate="<b>%{label}</b><br>Titles: %{value}<extra></extra>")
-        st.plotly_chart(fig_sun, use_container_width=True)
-
-    # --- Row 3: Trends, Cast, Geography (3 Columns) ---
-    col3, col4, col5 = st.columns(3)
-    
-    # Pre-calculate Top Cast
-    filtered_ids = filtered_df['id'].unique()
-    cast_counts = credits_df[(credits_df['id'].isin(filtered_ids)) & (credits_df['role'] == 'ACTOR')]
-    cast_counts = cast_counts['name'].value_counts().head(5).reset_index()
-    cast_counts.columns = ['Actor', 'Count']
-
-    with col3:
-        if 'year_added' in filtered_df.columns:
-            trend_df = filtered_df.groupby('year_added').size().reset_index(name='count')
-            trend_df = trend_df[trend_df['count'] > 0]
-            trend_df.columns = ['Year', 'Titles Added']
+    with col_perf:
+        if not filtered_df.empty and not credits_df.empty:
+            # Join dataframes for cross-analysis
+            titles_lite = filtered_df[['id', 'imdb_score', 'title']]
+            actors_lite = credits_df[credits_df['role'] == 'ACTOR'][['id', 'name']]
             
-            fig_trend = px.area(
-                trend_df,
-                x='Year',
-                y='Titles Added',
-                title="Acquisition Trend",
-                line_shape='spline',
-                color_discrete_sequence=[NETFLIX_RED]
-            )
-            fig_trend.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'),
-                yaxis=dict(title=None, gridcolor='#333'),
-                margin=dict(t=25, b=35, l=10, r=10),
-                height=165,
-                title_font_size=12
-            )
-            fig_trend.update_traces(fillcolor='rgba(229, 9, 20, 0.3)', hovertemplate="<b>Year: %{x}</b><br>Titles: %{y}<extra></extra>")
-            st.plotly_chart(fig_trend, use_container_width=True)
-
-    with col4:
-        if not cast_counts.empty:
-            fig_cast = px.bar(
-                cast_counts,
-                x='Count',
-                y='Actor',
-                orientation='h',
-                title="Top Cast",
-                color_discrete_sequence=[NETFLIX_RED]
-            )
-            fig_cast.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'),
-                yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10)),
-                margin=dict(t=25, b=35, l=10, r=10),
-                height=165,
-                title_font_size=12
-            )
-            fig_cast.update_layout(yaxis={'categoryorder':'total ascending'})
-            fig_cast.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
-            st.plotly_chart(fig_cast, use_container_width=True)
-
-    with col5:
-        if 'country' in filtered_df.columns:
-            # Explode list of countries
-            countries_series = filtered_df['country'].explode().dropna()
-            country_counts = countries_series.value_counts().head(5).reset_index()
-            country_counts.columns = ['Country', 'Count']
+            merged_data = pd.merge(actors_lite, titles_lite, on='id')
             
-            fig_country = px.bar(
-                country_counts,
-                x='Count',
-                y='Country',
-                orientation='h',
-                title="Top Countries",
-                color_discrete_sequence=[NETFLIX_RED]
-            )
-            fig_country.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'),
-                yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10)),
-                margin=dict(t=25, b=35, l=60, r=10),
-                height=165,
-                title_font_size=12
-            )
-            fig_country.update_layout(yaxis={'categoryorder':'total ascending'})
-            fig_country.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
-            st.plotly_chart(fig_country, use_container_width=True)
-
-    # --- Row 4: Cross-CSV Analysis (Added Chart) ---
-    st.markdown("<div style='margin-top: 5px;'></div>", unsafe_allow_html=True)
-    
-    if not filtered_df.empty and not credits_df.empty:
-        # Join dataframes for cross-analysis
-        titles_lite = filtered_df[['id', 'imdb_score', 'title']]
-        actors_lite = credits_df[credits_df['role'] == 'ACTOR'][['id', 'name']]
-        
-        merged_data = pd.merge(actors_lite, titles_lite, on='id')
-        
-        # Aggregate stats per actor
-        actor_stats = merged_data.groupby('name').agg({
-            'id': 'count',
-            'imdb_score': 'mean'
-        }).reset_index()
-        actor_stats.columns = ['Actor', 'Title Count', 'Avg IMDb Score']
-        
-        # Filter for top performers with at least some consistency
-        top_performers = actor_stats.sort_values(['Avg IMDb Score', 'Title Count'], ascending=False).head(10)
-        
-        if not top_performers.empty:
-            st.markdown("<h3 style='font-size: 1rem; color: #E50914; margin-bottom: 5px;'>TOP PERFORMING TALENT (ACROSS TITLES)</h3>", unsafe_allow_html=True)
+            # Aggregate stats per actor
+            actor_stats = merged_data.groupby('name').agg({
+                'id': 'count',
+                'imdb_score': 'mean'
+            }).reset_index()
+            actor_stats.columns = ['Actor', 'Title Count', 'Avg IMDb Score']
             
-            fig_perf = px.bar(
-                top_performers,
-                x='Avg IMDb Score',
-                y='Actor',
-                orientation='h',
-                color='Avg IMDb Score',
-                color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]],
-                hover_data={'Title Count': True, 'Avg IMDb Score': ':.2f'}
-            )
-            fig_perf.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(color=WHITE),
-                xaxis=dict(title="Avg IMDb Score", gridcolor='#333', range=[0, 10]),
-                yaxis=dict(title=None, gridcolor='#333', categoryorder='total ascending'),
-                margin=dict(t=10, b=40, l=10, r=10),
-                height=250,
-                coloraxis_showscale=False,
-                showlegend=False
-            )
-            fig_perf.update_traces(
-                hovertemplate="<b>%{y}</b><br>Avg Score: %{x:.2f}<br>Titles: %{customdata[0]}<extra></extra>",
-                marker_line_width=0
-            )
-            st.plotly_chart(fig_perf, use_container_width=True)
+            # Filter for top performers with at least some consistency
+            top_performers = actor_stats.sort_values(['Avg IMDb Score', 'Title Count'], ascending=False).head(10)
+            
+            if not top_performers.empty:
+                st.markdown("<h3 style='font-size: 1rem; color: #E50914; margin-bottom: 5px;'>TOP PERFORMING TALENT (ACROSS TITLES)</h3>", unsafe_allow_html=True)
+                
+                fig_perf = px.bar(
+                    top_performers,
+                    x='Avg IMDb Score',
+                    y='Actor',
+                    orientation='h',
+                    color='Avg IMDb Score',
+                    color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]],
+                    hover_data={'Title Count': True, 'Avg IMDb Score': ':.2f'}
+                )
+                fig_perf.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    font=dict(color=WHITE),
+                    xaxis=dict(title="Avg IMDb Score", gridcolor='#333', range=[0, 10]),
+                    yaxis=dict(title=None, gridcolor='#333', categoryorder='total ascending'),
+                    margin=dict(t=10, b=40, l=10, r=10),
+                    height=250,
+                    coloraxis_showscale=False,
+                    showlegend=False
+                )
+                fig_perf.update_traces(
+                    hovertemplate="<b>%{y}</b><br>Avg Score: %{x:.2f}<br>Titles: %{customdata[0]}<extra></extra>",
+                    marker_line_width=0
+                )
+                st.plotly_chart(fig_perf, use_container_width=True)
 
     # --- Row 4: Strategic AI Insights ---
     st.markdown("<div style='margin-top: 5px;'></div>", unsafe_allow_html=True)
