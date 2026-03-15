@@ -175,7 +175,7 @@ try:
     if sort_map[sort_by] in filtered_df.columns:
         filtered_df = filtered_df.sort_values(by=sort_map[sort_by], ascending=(sort_by == "Title"))
     # --- Deep Intelligence Engine (Cached) ---
-    df_hash = pd.util.hash_pandas_object(filtered_df).sum()
+    df_hash = pd.util.hash_pandas_object(filtered_df['id']).sum() if not filtered_df.empty else 0
     insight_text = get_deep_insights(df_hash, filtered_df, credits_df)
 
     # --- Sidebar Refinement & Intelligence Hub ---
