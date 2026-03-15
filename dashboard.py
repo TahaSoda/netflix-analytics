@@ -208,11 +208,17 @@ try:
             with k_donut:
                 ratio_df = pd.DataFrame({"Type": ["Movies", "Shows"], "Count": [m_count, tv_count]})
                 fig_ratio = px.pie(ratio_df, values='Count', names='Type', hole=0.7,
-                                   color_discrete_map={"Movies": NETFLIX_RED, "Shows": "#444"})
-                fig_ratio.update_layout(showlegend=False, paper_bgcolor='rgba(0,0,0,0)', margin=dict(t=5, b=5, l=5, r=5), height=140)
+                                   color='Type', color_discrete_map={"Movies": NETFLIX_RED, "Shows": "#444"})
+                fig_ratio.update_layout(
+                    showlegend=False, 
+                    paper_bgcolor='rgba(0,0,0,0)', 
+                    margin=dict(t=5, b=5, l=5, r=5), 
+                    height=140,
+                    annotations=[dict(text='M:S', x=0.5, y=0.5, font_size=12, showarrow=False)]
+                )
                 fig_ratio.update_traces(textinfo='none')
                 st.plotly_chart(fig_ratio, use_container_width=True, key="ratio_donut", config={'displayModeBar': False})
-                st.caption(f"Ratio {ratio}:1")
+                st.caption(f"Volume Ratio {ratio}:1")
 
     with col_trend:
         if 'year_added' in filtered_df.columns:
@@ -222,7 +228,7 @@ try:
                 fig_trend = px.area(trend_df, x='year_added', y='count', line_shape='spline', color_discrete_sequence=[NETFLIX_RED])
                 fig_trend.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE, size=8),
                     xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333'),
-                    margin=dict(t=10, b=30, l=10, r=10), height=160)
+                    margin=dict(t=10, b=30, l=10, r=10), height=260)
                 st.plotly_chart(fig_trend, use_container_width=True, key="trend_chart", config={'displayModeBar': False})
 
     with col_sun:
@@ -233,7 +239,7 @@ try:
             fig_tree = px.treemap(top_genres, path=[px.Constant("All"), 'listed_in'], values='count',
                                  color='count', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
             fig_tree.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                margin=dict(t=10, b=10, l=10, r=10), height=160, coloraxis_showscale=False)
+                margin=dict(t=10, b=10, l=10, r=10), height=260, coloraxis_showscale=False)
             fig_tree.update_traces(textinfo="label+value")
             st.plotly_chart(fig_tree, use_container_width=True, key="tree_chart", config={'displayModeBar': False})
 
