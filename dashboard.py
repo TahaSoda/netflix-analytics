@@ -354,17 +354,16 @@ try:
 
     with col_cast:
         if not cast_counts.empty:
-            st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Top Cast Distribution</span></div>", unsafe_allow_html=True)
-            fig_cast = px.bar(
-                cast_counts, x='Count', y='Actor', orientation='h',
-                color_discrete_sequence=[NETFLIX_RED]
+            st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Cast Share (Treemap)</span></div>", unsafe_allow_html=True)
+            fig_cast = px.treemap(
+                cast_counts, path=['Actor'], values='Count',
+                color='Count', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]]
             )
             fig_cast.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10), categoryorder='total ascending'),
-                margin=dict(t=5, b=25, l=10, r=10), height=170
+                margin=dict(t=5, b=5, l=5, r=5), height=170, coloraxis_showscale=False
             )
-            fig_cast.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
+            fig_cast.update_traces(hovertemplate="<b>%{label}</b><br>Titles: %{value}<extra></extra>")
             st.plotly_chart(fig_cast, use_container_width=True, config={'displayModeBar': False})
 
     with col_act:
@@ -374,21 +373,20 @@ try:
             merged_act = pd.merge(actors_lite, titles_lite, on='id')
             act_stats = merged_act.groupby('name').agg({'id': 'count', 'imdb_score': 'mean'}).reset_index()
             act_stats.columns = ['Actor', 'Titles', 'Score']
-            top_actors = act_stats.sort_values(['Score', 'Titles'], ascending=False).head(5)
+            top_actors = act_stats.sort_values(['Score', 'Titles'], ascending=False).head(10) # More points for scatter
             
             if not top_actors.empty:
-                st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Top Performing Actors</span></div>", unsafe_allow_html=True)
-                fig_act = px.bar(
-                    top_actors, x='Score', y='Actor', orientation='h',
-                    color='Score', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]]
+                st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Actor Efficiency (Score vs Volume)</span></div>", unsafe_allow_html=True)
+                fig_act = px.scatter(
+                    top_actors, x='Titles', y='Score', text='Actor',
+                    size='Titles', color='Score', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]]
                 )
                 fig_act.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                    xaxis=dict(title=None, gridcolor='#333', range=[0, 10]),
-                    yaxis=dict(title=None, gridcolor='#333', categoryorder='total ascending'),
+                    xaxis=dict(title="Titles", gridcolor='#333'), yaxis=dict(title="Score", gridcolor='#333', range=[0, 10]),
                     margin=dict(t=5, b=25, l=10, r=10), height=170, coloraxis_showscale=False
                 )
-                fig_act.update_traces(hovertemplate="<b>%{y}</b><br>Score: %{x:.1f}<extra></extra>", marker_line_width=0)
+                fig_act.update_traces(textposition='top center', hovertemplate="<b>%{text}</b><br>Titles: %{x}<br>Score: %{y:.1f}<extra></extra>")
                 st.plotly_chart(fig_act, use_container_width=True, config={'displayModeBar': False})
 
     with col_dir:
@@ -423,18 +421,18 @@ try:
             rating_counts = filtered_df['age_certification'].value_counts().reset_index()
             rating_counts.columns = ['Rating', 'Count']
             
-            st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Maturity Profile</h3>", unsafe_allow_html=True)
-            fig_rating = px.bar(
-                rating_counts, x='Rating', y='Count',
-                color_discrete_sequence=[NETFLIX_RED]
+            st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Maturity Donut</span></div>", unsafe_allow_html=True)
+            fig_rating = px.pie(
+                rating_counts, names='Rating', values='Count', hole=0.6,
+                color_discrete_sequence=[NETFLIX_RED, "#444", "#666", "#888", "#AA0000"]
             )
             fig_rating.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333'),
-                margin=dict(t=5, b=35, l=10, r=10), height=180
+                margin=dict(t=0, b=0, l=0, r=0), height=170, showlegend=True,
+                legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="right", x=1.1, font=dict(size=8))
             )
-            fig_rating.update_traces(hovertemplate="<b>Rating: %{x}</b><br>Titles: %{y}<extra></extra>")
-            st.plotly_chart(fig_rating, use_container_width=True)
+            fig_rating.update_traces(textinfo='none', hovertemplate="<b>%{label}</b><br>Titles: %{value}<extra></extra>")
+            st.plotly_chart(fig_rating, use_container_width=True, config={'displayModeBar': False})
 
     with col_geo:
         if 'country' in filtered_df.columns:
