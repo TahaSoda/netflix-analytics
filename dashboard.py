@@ -191,6 +191,10 @@ try:
         filtered_df = filtered_df[filtered_df['listed_in'].apply(lambda x: selected_pill in x if isinstance(x, list) else False)]
 
     # --- Row 1: Metrics, Trend & Genre Split (3 Symmetric Columns) ---
+    m_count = len(filtered_df[filtered_df['type'].str.upper().str.contains('MOVIE', na=False)])
+    tv_count = len(filtered_df[filtered_df['type'].str.upper().str.contains('SHOW', na=False)])
+    ratio = round(m_count / tv_count, 1) if tv_count > 0 else "N/A"
+    
     col_kpi, col_trend, col_sun = st.columns([1, 1.1, 1])
     
     with col_kpi:
