@@ -64,19 +64,20 @@ During the analysis, I explored several strategic questions such as:
 ## Skills Used
 This project helped practice several important Data Engineering and Visualization concepts including:
 *   **Data Cleaning & Parsing**: Handling list-like strings in CSV columns (Genres/Countries).
-*   **Interactive Slicers**: Building a synchronized filtering system using Streamlit Pills.
-*   **Advanced Plotly**: Customizing Sunburst, Area, and Bar charts for premium aesthetics.
-*   **Custom UI/UX**: Using Vanilla CSS injection to create a branded, "strictly unscrollable" single-page layout.
+*   **Interactive Slicers**: Building a synchronized filtering system using Treemap click-events.
+*   **Advanced Plotly**: Customizing Treemaps, Area charts, and Bar charts for premium aesthetics.
+*   **Performance Optimization**: Using index-based lookups and data hashing for snappy interactions.
+*   **Custom UI/UX**: Creating a branded, "strictly unscrollable" single-page layout.
 
 ## Dashboard
 The Streamlit dashboard was created to present these insights visually in a premium environment.
 
 **The dashboard includes:**
 *   **KPI Cards**: High-level metrics for Library size, Movies, and TV Shows.
-*   **Interactive Genre Slicer**: A centered pill-selection system that updates the entire page.
-*   **Maturity & Composition Row**: Side-by-side comparison of ratings and genre distributions.
-*   **Trends & Geography Row**: Analysis of library growth and top production countries.
-*   **Strategic AI Insights**: Automated narrative summaries of the current data view.
+*   **Interactive Treemaps**: Clicking on Genres or Regions updates the entire dashboard instantly.
+*   **Maturity & Talent Row**: Side-by-side comparison of ratings and actor/director performance.
+*   **Growth Trends**: Analysis of library expansion over time.
+*   **Intelligence Pulse**: Automated narrative summaries of context-aware strategic insights.
 
 ## What I Learned
 Working on this project helped me practice:
