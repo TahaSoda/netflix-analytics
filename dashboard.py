@@ -368,36 +368,52 @@ try:
             st.plotly_chart(fig_cast, use_container_width=True, config={'displayModeBar': False})
 
     with col_act:
-        if not top_actors.empty:
-            st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Top Performing Actors</span></div>", unsafe_allow_html=True)
-            fig_act = px.bar(
-                top_actors, x='Score', y='Actor', orientation='h',
-                color='Score', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]]
-            )
-            fig_act.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333', range=[0, 10]),
-                yaxis=dict(title=None, gridcolor='#333', categoryorder='total ascending'),
-                margin=dict(t=5, b=25, l=10, r=10), height=170, coloraxis_showscale=False
-            )
-            fig_act.update_traces(hovertemplate="<b>%{y}</b><br>Score: %{x:.1f}<extra></extra>", marker_line_width=0)
-            st.plotly_chart(fig_act, use_container_width=True, config={'displayModeBar': False})
+        if not filtered_df.empty and not credits_df.empty:
+            titles_lite = filtered_df[['id', 'imdb_score']]
+            actors_lite = credits_df[credits_df['role'] == 'ACTOR'][['id', 'name']]
+            merged_act = pd.merge(actors_lite, titles_lite, on='id')
+            act_stats = merged_act.groupby('name').agg({'id': 'count', 'imdb_score': 'mean'}).reset_index()
+            act_stats.columns = ['Actor', 'Titles', 'Score']
+            top_actors = act_stats.sort_values(['Score', 'Titles'], ascending=False).head(5)
+            
+            if not top_actors.empty:
+                st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Top Performing Actors</span></div>", unsafe_allow_html=True)
+                fig_act = px.bar(
+                    top_actors, x='Score', y='Actor', orientation='h',
+                    color='Score', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]]
+                )
+                fig_act.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
+                    xaxis=dict(title=None, gridcolor='#333', range=[0, 10]),
+                    yaxis=dict(title=None, gridcolor='#333', categoryorder='total ascending'),
+                    margin=dict(t=5, b=25, l=10, r=10), height=170, coloraxis_showscale=False
+                )
+                fig_act.update_traces(hovertemplate="<b>%{y}</b><br>Score: %{x:.1f}<extra></extra>", marker_line_width=0)
+                st.plotly_chart(fig_act, use_container_width=True, config={'displayModeBar': False})
 
     with col_dir:
-        if not top_dirs.empty:
-            st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Top Performing Directors</span></div>", unsafe_allow_html=True)
-            fig_dir = px.bar(
-                top_dirs, x='Score', y='Director', orientation='h',
-                color='Score', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]]
-            )
-            fig_dir.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333', range=[0, 10]),
-                yaxis=dict(title=None, gridcolor='#333', categoryorder='total ascending'),
-                margin=dict(t=5, b=25, l=10, r=10), height=170, coloraxis_showscale=False
-            )
-            fig_dir.update_traces(hovertemplate="<b>%{y}</b><br>Score: %{x:.1f}<extra></extra>", marker_line_width=0)
-            st.plotly_chart(fig_dir, use_container_width=True, config={'displayModeBar': False})
+        if not filtered_df.empty and not credits_df.empty:
+            titles_lite = filtered_df[['id', 'imdb_score']]
+            dir_lite = credits_df[credits_df['role'] == 'DIRECTOR'][['id', 'name']]
+            merged_dir = pd.merge(dir_lite, titles_lite, on='id')
+            dir_stats = merged_dir.groupby('name').agg({'id': 'count', 'imdb_score': 'mean'}).reset_index()
+            dir_stats.columns = ['Director', 'Titles', 'Score']
+            top_dirs = dir_stats.sort_values(['Score', 'Titles'], ascending=False).head(5)
+            
+            if not top_dirs.empty:
+                st.markdown(f"<div style='margin-bottom: 8px;'><span style='font-size: 0.85rem; color: {NETFLIX_RED}; font-weight: 700; text-transform: uppercase;'>Top Performing Directors</span></div>", unsafe_allow_html=True)
+                fig_dir = px.bar(
+                    top_dirs, x='Score', y='Director', orientation='h',
+                    color='Score', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]]
+                )
+                fig_dir.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
+                    xaxis=dict(title=None, gridcolor='#333', range=[0, 10]),
+                    yaxis=dict(title=None, gridcolor='#333', categoryorder='total ascending'),
+                    margin=dict(t=5, b=25, l=10, r=10), height=170, coloraxis_showscale=False
+                )
+                fig_dir.update_traces(hovertemplate="<b>%{y}</b><br>Score: %{x:.1f}<extra></extra>", marker_line_width=0)
+                st.plotly_chart(fig_dir, use_container_width=True, config={'displayModeBar': False})
 
     # --- Row 3: Maturity & Geography (2 Columns) ---
     col_mat_row3, col_geo = st.columns(2)
