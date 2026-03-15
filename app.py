@@ -144,36 +144,36 @@ def parse_list_col(val):
     except:
         return val
 
-# Cache data loading
 @st.cache_data
 def load_data():
-    if os.path.exists("titles.csv"):
-        df = pd.read_csv("titles.csv")
-    else:
-        return pd.DataFrame()
+    titles_df = pd.read_csv("titles.csv") if os.path.exists("titles.csv") else pd.DataFrame()
+    credits_df = pd.read_csv("credits.csv") if os.path.exists("credits.csv") else pd.DataFrame()
+    
+    if titles_df.empty:
+        return pd.DataFrame(), pd.DataFrame()
         
     column_mapping = {
         'production_countries': 'country',
         'genres': 'listed_in'
     }
-    df = df.rename(columns=column_mapping)
+    titles_df = titles_df.rename(columns=column_mapping)
     
-    if 'date_added' in df.columns:
-        df['date_added'] = pd.to_datetime(df['date_added'].str.strip(), format='%B %d, %Y', errors='coerce')
-        df['year_added'] = df['date_added'].dt.year
+    if 'date_added' in titles_df.columns:
+        titles_df['date_added'] = pd.to_datetime(titles_df['date_added'].str.strip(), format='%B %d, %Y', errors='coerce')
+        titles_df['year_added'] = titles_df['date_added'].dt.year
     else:
-        df['year_added'] = df['release_year']
+        titles_df['year_added'] = titles_df['release_year']
         
     for col in ['country', 'listed_in']:
-        if col in df.columns:
-            df[col] = df[col].apply(parse_list_col)
+        if col in titles_df.columns:
+            titles_df[col] = titles_df[col].apply(parse_list_col)
             
-    return df
+    return titles_df, credits_df
 
 try:
-    df = load_data()
+    df, credits_df = load_data()
     if df.empty:
-        st.error("Dataset 'titles.csv' not found.")
+        st.error("Essential dataset 'titles.csv' not found.")
         st.stop()
 
     # Sidebar (Filters)
@@ -350,8 +350,14 @@ try:
         fig_sun.update_traces(hovertemplate="<b>%{label}</b><br>Titles: %{value}<extra></extra>")
         st.plotly_chart(fig_sun, use_container_width=True)
 
-    # --- Row 3: Trends & Geography (2 Columns) ---
-    col3, col4 = st.columns(2)
+    # --- Row 3: Trends, Cast, Geography (3 Columns) ---
+    col3, col4, col5 = st.columns(3)
+    
+    # Pre-calculate Top Cast
+    filtered_ids = filtered_df['id'].unique()
+    cast_counts = credits_df[(credits_df['id'].isin(filtered_ids)) & (credits_df['role'] == 'ACTOR')]
+    cast_counts = cast_counts['name'].value_counts().head(5).reset_index()
+    cast_counts.columns = ['Actor', 'Count']
 
     with col3:
         if 'year_added' in filtered_df.columns:
@@ -381,6 +387,30 @@ try:
             st.plotly_chart(fig_trend, use_container_width=True)
 
     with col4:
+        if not cast_counts.empty:
+            fig_cast = px.bar(
+                cast_counts,
+                x='Count',
+                y='Actor',
+                orientation='h',
+                title="Top Cast",
+                color_discrete_sequence=[NETFLIX_RED]
+            )
+            fig_cast.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font=dict(color=WHITE),
+                xaxis=dict(title=None, gridcolor='#333'),
+                yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10)),
+                margin=dict(t=25, b=35, l=10, r=10),
+                height=165,
+                title_font_size=12
+            )
+            fig_cast.update_layout(yaxis={'categoryorder':'total ascending'})
+            fig_cast.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
+            st.plotly_chart(fig_cast, use_container_width=True)
+
+    with col5:
         if 'country' in filtered_df.columns:
             # Explode list of countries
             countries_series = filtered_df['country'].explode().dropna()
@@ -399,12 +429,13 @@ try:
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 font=dict(color=WHITE),
-                yaxis={'categoryorder':'total ascending', 'title': None},
-                xaxis={'title': None},
+                xaxis=dict(title=None, gridcolor='#333'),
+                yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10)),
                 margin=dict(t=25, b=35, l=60, r=10),
                 height=165,
                 title_font_size=12
             )
+            fig_country.update_layout(yaxis={'categoryorder':'total ascending'})
             fig_country.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
             st.plotly_chart(fig_country, use_container_width=True)
 

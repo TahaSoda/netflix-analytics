@@ -45,15 +45,16 @@ During the analysis, I explored several strategic questions such as:
 ### Key Library Metrics
 *   **Total Library Size**: Unified count of all available content.
 *   **Volume by Type**: Breakdown of Movies vs. TV Shows.
-*   **Movie-to-Show Ratio**: Understanding Netflix's portfolio balance.
+*   **Talent Spotlight**: Analysis of the **Top Cast** appearing across titles.
 
 ### Content Trends
 *   **Acquisition Velocity**: Yearly trends of content being added to the platform.
 *   **Growth Hotspots**: Identifying years of aggressive library expansion.
 
-### Category & Maturity Analysis
+### Category, Maturity & Talent
 *   **Maturity Profile**: Distribution of age certifications across the library.
-*   **Genre Composition**: A deep dive into the "Genre DNA" of the platform using nested Sunburst visualizations.
+*   **Genre Composition**: A deep dive into the "Genre DNA" of the platform.
+*   **Top Cast**: Identifying the most prolific actors within specific genres or the entire library.
 
 ### Regional Analysis
 *   **Top Production Hubs**: Identifying the leading countries contributing to the Netflix catalog.
