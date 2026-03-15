@@ -343,32 +343,29 @@ try:
         fig_sun.update_traces(hovertemplate="<b>%{label}</b><br>Titles: %{value}<extra></extra>")
         st.plotly_chart(fig_sun, use_container_width=True)
 
-    # --- Row 2: Maturity Profile, Actors & Directors (3 Columns) ---
-    col_mat, col_act, col_dir = st.columns(3)
+    # --- Row 2: Cast, Actors & Directors (Talent Hub) ---
+    col_cast, col_act, col_dir = st.columns(3)
     
-    with col_mat:
-        if 'age_certification' in filtered_df.columns:
-            rating_counts = filtered_df['age_certification'].value_counts().reset_index()
-            rating_counts.columns = ['Rating', 'Count']
-            
-            st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Maturity Profile</h3>", unsafe_allow_html=True)
-            fig_rating = px.bar(
-                rating_counts,
-                x='Rating',
-                y='Count',
+    # Pre-calculate Top Cast
+    filtered_ids = filtered_df['id'].unique()
+    cast_counts = credits_df[(credits_df['id'].isin(filtered_ids)) & (credits_df['role'] == 'ACTOR')]
+    cast_counts = cast_counts['name'].value_counts().head(5).reset_index()
+    cast_counts.columns = ['Actor', 'Count']
+
+    with col_cast:
+        if not cast_counts.empty:
+            st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Top Cast Distribution</h3>", unsafe_allow_html=True)
+            fig_cast = px.bar(
+                cast_counts, x='Count', y='Actor', orientation='h',
                 color_discrete_sequence=[NETFLIX_RED]
             )
-            fig_rating.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'),
-                yaxis=dict(title=None, gridcolor='#333'),
-                margin=dict(t=5, b=35, l=10, r=10),
-                height=180
+            fig_cast.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
+                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10), categoryorder='total ascending'),
+                margin=dict(t=5, b=35, l=10, r=10), height=180
             )
-            fig_rating.update_traces(hovertemplate="<b>Rating: %{x}</b><br>Titles: %{y}<extra></extra>")
-            st.plotly_chart(fig_rating, use_container_width=True)
+            fig_cast.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
+            st.plotly_chart(fig_cast, use_container_width=True)
 
     with col_act:
         if not filtered_df.empty and not credits_df.empty:
@@ -418,31 +415,28 @@ try:
                 fig_dir.update_traces(hovertemplate="<b>%{y}</b><br>Score: %{x:.1f}<extra></extra>", marker_line_width=0)
                 st.plotly_chart(fig_dir, use_container_width=True)
 
-    # --- Row 3: Cast & Geography (2 Columns) ---
-    col3, col4 = st.columns(2)
+    # --- Row 3: Maturity & Geography (2 Columns) ---
+    col_mat_row3, col_geo = st.columns(2)
     
-    # Pre-calculate Top Cast
-    filtered_ids = filtered_df['id'].unique()
-    cast_counts = credits_df[(credits_df['id'].isin(filtered_ids)) & (credits_df['role'] == 'ACTOR')]
-    cast_counts = cast_counts['name'].value_counts().head(5).reset_index()
-    cast_counts.columns = ['Actor', 'Count']
-
-    with col3:
-        if not cast_counts.empty:
-            st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Top Cast Distribution</h3>", unsafe_allow_html=True)
-            fig_cast = px.bar(
-                cast_counts, x='Count', y='Actor', orientation='h',
+    with col_mat_row3:
+        if 'age_certification' in filtered_df.columns:
+            rating_counts = filtered_df['age_certification'].value_counts().reset_index()
+            rating_counts.columns = ['Rating', 'Count']
+            
+            st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Maturity Profile</h3>", unsafe_allow_html=True)
+            fig_rating = px.bar(
+                rating_counts, x='Rating', y='Count',
                 color_discrete_sequence=[NETFLIX_RED]
             )
-            fig_cast.update_layout(
+            fig_rating.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10), categoryorder='total ascending'),
+                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333'),
                 margin=dict(t=5, b=35, l=10, r=10), height=180
             )
-            fig_cast.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
-            st.plotly_chart(fig_cast, use_container_width=True)
+            fig_rating.update_traces(hovertemplate="<b>Rating: %{x}</b><br>Titles: %{y}<extra></extra>")
+            st.plotly_chart(fig_rating, use_container_width=True)
 
-    with col4:
+    with col_geo:
         if 'country' in filtered_df.columns:
             countries_series = filtered_df['country'].explode().dropna()
             country_counts = countries_series.value_counts().head(5).reset_index()
