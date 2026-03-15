@@ -97,10 +97,11 @@ st.markdown(f"""
     div[data-testid="stMetric"] {{
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 8px 12px !important;
-        border-radius: 10px;
+        padding: 5px 10px !important;
+        border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s ease;
+        min-height: 60px !important;
     }}
     
     div[data-testid="stMetric"]:hover {{
@@ -110,15 +111,22 @@ st.markdown(f"""
     }}
     
     div[data-testid="stMetricValue"] {{
-        font-size: 1.4rem !important;
+        font-size: 1.2rem !important;
         font-weight: 700 !important;
+        line-height: 1.2 !important;
         color: {NETFLIX_RED} !important;
     }}
     
     div[data-testid="stMetricLabel"] {{
-        font-size: 0.75rem !important;
+        font-size: 0.7rem !important;
         color: #BBB !important;
-        margin-bottom: 2px !important;
+        margin-bottom: 0px !important;
+        line-height: 1 !important;
+    }}
+    
+    /* Ensure metric content fits */
+    div[data-testid="stMetric"] > div {{
+        padding: 0 !important;
     }}
     
     
@@ -457,9 +465,10 @@ try:
         actor_stats.columns = ['Actor', 'Title Count', 'Avg IMDb Score']
         
         # Filter for significant volume
-        top_performers = actor_stats[actor_stats['Title Count'] >= 2].sort_values('Avg IMDb Score', ascending=False).head(15)
+        top_performers = actor_stats[actor_stats['Title Count'] >= 1].sort_values('Avg IMDb Score', ascending=False).head(15)
         
         if not top_performers.empty:
+            st.markdown("<h3 style='font-size: 1rem; color: #E50914; margin-bottom: 5px;'>TALENT PERFORMANCE: QUALITY VS. VOLUME</h3>", unsafe_allow_html=True)
             fig_perf = px.scatter(
                 top_performers,
                 x='Title Count',
@@ -467,19 +476,18 @@ try:
                 text='Actor',
                 size='Title Count',
                 color='Avg IMDb Score',
-                title="Talent Efficiency: Quality vs. Quantity",
                 color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]]
             )
             fig_perf.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 font=dict(color=WHITE),
-                xaxis=dict(title="Volume (Titles)", gridcolor='#333', dtick=1),
+                xaxis=dict(title="Volume (Titles)", gridcolor='#333', dtick=None),
                 yaxis=dict(title="Avg IMDb Score", gridcolor='#333'),
-                margin=dict(t=30, b=40, l=10, r=10),
+                margin=dict(t=10, b=40, l=10, r=10),
                 height=220,
-                title_font_size=12,
-                coloraxis_showscale=False
+                coloraxis_showscale=False,
+                showlegend=False
             )
             fig_perf.update_traces(textposition='top center', marker=dict(line=dict(width=1, color='rgba(255,255,255,0.2)')))
             st.plotly_chart(fig_perf, use_container_width=True)
