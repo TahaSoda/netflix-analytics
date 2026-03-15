@@ -291,6 +291,7 @@ try:
     
     with col_kpi:
         # 2x2 Stacked Grid for KPIs
+        st.markdown(f"<h3 style='font-size: 0.9rem; color: {NETFLIX_RED}; margin-bottom: 8px; text-transform: uppercase;'>Library Overview</h3>", unsafe_allow_html=True)
         k_row1_col1, k_row1_col2 = st.columns(2)
         k_row2_col1, k_row2_col2 = st.columns(2)
         
@@ -316,6 +317,7 @@ try:
         top_type_genres = top_type_genres.sort_values(['type', 'count'], ascending=[True, False])
         top_type_genres = top_type_genres.groupby('type').head(5).reset_index(drop=True)
 
+        st.markdown(f"<h3 style='font-size: 0.9rem; color: {NETFLIX_RED}; margin-bottom: 8px; text-transform: uppercase;'>Genre Split</h3>", unsafe_allow_html=True)
         fig_sun = px.sunburst(
             top_type_genres,
             path=['type', 'listed_in'],
@@ -327,9 +329,8 @@ try:
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
             font=dict(color=WHITE),
-            margin=dict(t=10, b=10, l=10, r=10),
-            height=140,
-            title=None
+            margin=dict(t=0, b=0, l=0, r=0),
+            height=140
         )
         fig_sun.update_traces(hovertemplate="<b>%{label}</b><br>Titles: %{value}<extra></extra>")
         st.plotly_chart(fig_sun, use_container_width=True)
