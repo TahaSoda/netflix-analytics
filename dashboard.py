@@ -110,17 +110,17 @@ st.markdown(f"""
     }}
     
     div[data-testid="stMetricValue"] {{
-        font-size: 1.2rem !important;
+        font-size: 1.3rem !important;
         font-weight: 700 !important;
-        line-height: 1.2 !important;
+        line-height: 1 !important;
         color: {NETFLIX_RED} !important;
     }}
     
     div[data-testid="stMetricLabel"] {{
-        font-size: 0.7rem !important;
+        font-size: 0.8rem !important;
         color: #BBB !important;
         margin-bottom: 0px !important;
-        line-height: 1 !important;
+        line-height: 0.9 !important;
     }}
     
     /* Ensure metric content fits */
@@ -292,21 +292,21 @@ try:
             logo_base64 = ""
             
         st.markdown(f"""
-            <div style="display: flex; align-items: center; justify-content: flex-start; background: rgba(255,255,255,0.03); padding: 8px 15px; border-radius: 12px; border-left: 4px solid {NETFLIX_RED}; height: 65px; gap: 12px;">
-                <img src="{logo_base64}" width="40">
+            <div style="display: flex; align-items: center; justify-content: flex-start; background: rgba(255,255,255,0.03); padding: 8px 15px; border-radius: 12px; border-left: 4px solid {NETFLIX_RED}; height: 85px; gap: 12px;">
+                <img src="{logo_base64}" width="45">
                 <div style="text-align: left;">
-                    <h1 style="margin: 0; padding: 0; font-size: 1.4rem; color: {WHITE}; letter-spacing: 1px; font-weight: 800; line-height: 1;">
+                    <h1 style="margin: 0; padding: 0; font-size: 1.8rem; color: {WHITE}; letter-spacing: 1px; font-weight: 800; line-height: 1;">
                         NETFLIX <span style="color: {NETFLIX_RED};">ANALYTICS</span>
                     </h1>
-                    <p style="margin: 0; color: #888; font-size: 0.65rem; text-transform: uppercase;">Library Intelligence Hub</p>
+                    <p style="margin: 0; color: #888; font-size: 0.75rem; text-transform: uppercase;">Library Intelligence Hub</p>
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
     with head_right:
         st.markdown(f"""
-            <div style="background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); border-right: 4px solid {NETFLIX_RED}; height: 65px; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
-                <div style="color: #BBB; font-size: 0.7rem; line-height: 1.3; width: 100%;">
+            <div style="background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); border-right: 4px solid {NETFLIX_RED}; height: 85px; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
+                <div style="color: #BBB; font-size: 0.85rem; line-height: 1.3; width: 100%;">
                     {insight_ticker}
                 </div>
             </div>
