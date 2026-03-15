@@ -36,7 +36,7 @@ The dataset contains nearly **6,000 Netflix titles** (Movies and TV Shows) with 
     └── logo.png            # Official Netflix logo
 
 ## Live Demo:
-https://netflix-analytics.streamlit.app
+https://tahasoda-netflix-analytics-dashboard-vzvilh.streamlit.app
 
 *   **dashboard.py**: Contains the main Streamlit application logic, custom CSS, and Plotly visualization code.
 *   **titles.csv / credits.csv**: The raw datasets used for the analysis.
