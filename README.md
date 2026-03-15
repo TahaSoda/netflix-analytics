@@ -26,17 +26,20 @@ The dataset contains nearly **6,000 Netflix titles** (Movies and TV Shows) with 
 ## Project Files
 **netflix-dashboard**
 │
-├── app.py
-├── titles.csv
-├── requirements.txt
-├── .gitignore
-├── README.md
-└── assets/
-    └── logo.png
+├── dashboard.py            # Main Streamlit dashboard application
+├── titles.csv              # Primary Netflix titles dataset
+├── credits.csv             # Supporting dataset for cast analysis
+├── requirements.txt        # Python library dependencies
+├── netflix_analysis.ipynb  # Exploratory Data Analysis (EDA) notebook
+├── .gitignore              # Version control ignore rules
+├── README.md               # Project documentation
+└── assets/                 # Branding and static assets
+    └── logo.png            # Official Netflix logo
 
-*   **app.py**: Contains the main Streamlit application logic, custom CSS, and Plotly visualization code.
-*   **titles.csv**: The raw dataset used for the analysis.
+*   **dashboard.py**: Contains the main Streamlit application logic, custom CSS, and Plotly visualization code.
+*   **titles.csv / credits.csv**: The raw datasets used for the analysis.
 *   **requirements.txt**: Lists the Python dependencies needed to run the app.
+*   **netflix_analysis.ipynb**: A Jupyter Notebook containing the initial data research and visualization prototypes.
 *   **assets/**: Stores branding elements like the official Netflix logo.
 
 ## Analysis Performed
