@@ -286,29 +286,43 @@ try:
     if selected_pill and selected_pill != "All":
         filtered_df = filtered_df[filtered_df['listed_in'].apply(lambda x: selected_pill in x if isinstance(x, list) else False)]
 
-    # --- Row 1: Key Metrics & Genre Composition ---
-    col_kpi, col_sun = st.columns([2, 1])
+    # --- Row 1: Metrics, Trend & Genre Split (3 Columns) ---
+    col_kpi, col_trend, col_sun = st.columns([1, 1.5, 1])
     
     with col_kpi:
-        # 2x2 Stacked Grid for KPIs
-        st.markdown(f"<h3 style='font-size: 0.9rem; color: {NETFLIX_RED}; margin-bottom: 8px; text-transform: uppercase;'>Library Overview</h3>", unsafe_allow_html=True)
-        k_row1_col1, k_row1_col2 = st.columns(2)
-        k_row2_col1, k_row2_col2 = st.columns(2)
-        
-        with k_row1_col1:
-            st.metric("Library", f"{len(filtered_df):,}")
-        with k_row1_col2:
+        st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 8px; text-transform: uppercase;'>Library Overview</h3>", unsafe_allow_html=True)
+        # 2x2 Grid for compact KPIs
+        k_r1_c1, k_r1_c2 = st.columns(2)
+        k_r2_c1, k_r2_c2 = st.columns(2)
+        with k_r1_c1: st.metric("Library", f"{len(filtered_df):,}")
+        with k_r1_c2: 
             m_count = len(filtered_df[filtered_df['type'].str.upper().str.contains('MOVIE', na=False)])
             st.metric("Movies", f"{m_count:,}")
-        with k_row2_col1:
+        with k_r2_c1:
             tv_count = len(filtered_df[filtered_df['type'].str.upper().str.contains('SHOW', na=False)])
             st.metric("TV Shows", f"{tv_count:,}")
-        with k_row2_col2:
-            if tv_count > 0:
-                ratio = round(m_count / tv_count, 1)
-                st.metric("M:S Ratio", f"{ratio}:1")
-            else:
-                st.metric("M:S Ratio", "N/A")
+        with k_r2_c2:
+            ratio = round(m_count / tv_count, 1) if tv_count > 0 else "N/A"
+            st.metric("M:S Ratio", f"{ratio}:1" if ratio != "N/A" else "N/A")
+
+    with col_trend:
+        if 'year_added' in filtered_df.columns:
+            trend_df = filtered_df.groupby('year_added').size().reset_index(name='count')
+            trend_df = trend_df[trend_df['count'] > 0]
+            trend_df.columns = ['Year', 'Titles Added']
+            
+            st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Acquisition Trend</h3>", unsafe_allow_html=True)
+            fig_trend = px.area(
+                trend_df, x='Year', y='Titles Added', line_shape='spline',
+                color_discrete_sequence=[NETFLIX_RED]
+            )
+            fig_trend.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
+                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333'),
+                margin=dict(t=5, b=25, l=10, r=10), height=140
+            )
+            fig_trend.update_traces(fillcolor='rgba(229, 9, 20, 0.3)', hovertemplate="<b>Year: %{x}</b><br>Titles: %{y}<extra></extra>")
+            st.plotly_chart(fig_trend, use_container_width=True)
 
     with col_sun:
         # Sunburst uses base_filtered_df (ignores genre pills)
@@ -317,20 +331,14 @@ try:
         top_type_genres = top_type_genres.sort_values(['type', 'count'], ascending=[True, False])
         top_type_genres = top_type_genres.groupby('type').head(5).reset_index(drop=True)
 
-        st.markdown(f"<h3 style='font-size: 0.9rem; color: {NETFLIX_RED}; margin-bottom: 8px; text-transform: uppercase;'>Genre Split</h3>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 8px; text-transform: uppercase;'>Genre Split</h3>", unsafe_allow_html=True)
         fig_sun = px.sunburst(
-            top_type_genres,
-            path=['type', 'listed_in'],
-            values='count',
-            color='type',
+            top_type_genres, path=['type', 'listed_in'], values='count', color='type',
             color_discrete_map={'MOVIE': NETFLIX_RED, 'SHOW': "#444444", 'Movie': NETFLIX_RED, 'TV Show': "#444444"}
         )
         fig_sun.update_layout(
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            font=dict(color=WHITE),
-            margin=dict(t=0, b=0, l=0, r=0),
-            height=140
+            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
+            margin=dict(t=0, b=0, l=0, r=0), height=140
         )
         fig_sun.update_traces(hovertemplate="<b>%{label}</b><br>Titles: %{value}<extra></extra>")
         st.plotly_chart(fig_sun, use_container_width=True)
@@ -410,8 +418,8 @@ try:
                 fig_dir.update_traces(hovertemplate="<b>%{y}</b><br>Score: %{x:.1f}<extra></extra>", marker_line_width=0)
                 st.plotly_chart(fig_dir, use_container_width=True)
 
-    # --- Row 3: Trends, Cast, Geography (3 Columns) ---
-    col3, col4, col5 = st.columns(3)
+    # --- Row 3: Cast & Geography (2 Columns) ---
+    col3, col4 = st.columns(2)
     
     # Pre-calculate Top Cast
     filtered_ids = filtered_df['id'].unique()
@@ -420,79 +428,36 @@ try:
     cast_counts.columns = ['Actor', 'Count']
 
     with col3:
-        if 'year_added' in filtered_df.columns:
-            trend_df = filtered_df.groupby('year_added').size().reset_index(name='count')
-            trend_df = trend_df[trend_df['count'] > 0]
-            trend_df.columns = ['Year', 'Titles Added']
-            
-            st.markdown(f"<h3 style='font-size: 0.9rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Acquisition Trend</h3>", unsafe_allow_html=True)
-            fig_trend = px.area(
-                trend_df,
-                x='Year',
-                y='Titles Added',
-                line_shape='spline',
-                color_discrete_sequence=[NETFLIX_RED]
-            )
-            fig_trend.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'),
-                yaxis=dict(title=None, gridcolor='#333'),
-                margin=dict(t=5, b=35, l=10, r=10),
-                height=180
-            )
-            fig_trend.update_traces(fillcolor='rgba(229, 9, 20, 0.3)', hovertemplate="<b>Year: %{x}</b><br>Titles: %{y}<extra></extra>")
-            st.plotly_chart(fig_trend, use_container_width=True)
-
-    with col4:
         if not cast_counts.empty:
-            st.markdown(f"<h3 style='font-size: 0.9rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Top Cast</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Top Cast Distribution</h3>", unsafe_allow_html=True)
             fig_cast = px.bar(
-                cast_counts,
-                x='Count',
-                y='Actor',
-                orientation='h',
+                cast_counts, x='Count', y='Actor', orientation='h',
                 color_discrete_sequence=[NETFLIX_RED]
             )
             fig_cast.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'),
-                yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10)),
-                margin=dict(t=5, b=35, l=10, r=10),
-                height=180
+                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
+                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10)),
+                margin=dict(t=5, b=35, l=10, r=10), height=180, categoryorder='total ascending'
             )
-            fig_cast.update_layout(yaxis={'categoryorder':'total ascending'})
             fig_cast.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
             st.plotly_chart(fig_cast, use_container_width=True)
 
-    with col5:
+    with col4:
         if 'country' in filtered_df.columns:
-            # Explode list of countries
             countries_series = filtered_df['country'].explode().dropna()
             country_counts = countries_series.value_counts().head(5).reset_index()
             country_counts.columns = ['Country', 'Count']
             
-            st.markdown(f"<h3 style='font-size: 0.9rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Top Countries</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='font-size: 0.85rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Regional Presence</h3>", unsafe_allow_html=True)
             fig_country = px.bar(
-                country_counts,
-                x='Count',
-                y='Country',
-                orientation='h',
+                country_counts, x='Count', y='Country', orientation='h',
                 color_discrete_sequence=[NETFLIX_RED]
             )
             fig_country.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(color=WHITE),
-                xaxis=dict(title=None, gridcolor='#333'),
-                yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10)),
-                margin=dict(t=5, b=35, l=60, r=10),
-                height=180
+                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
+                xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10)),
+                margin=dict(t=5, b=35, l=60, r=10), height=180, categoryorder='total ascending'
             )
-            fig_country.update_layout(yaxis={'categoryorder':'total ascending'})
             fig_country.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
             st.plotly_chart(fig_country, use_container_width=True)
 
