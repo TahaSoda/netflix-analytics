@@ -290,16 +290,19 @@ try:
     col_kpi, col_sun = st.columns([2, 1])
     
     with col_kpi:
-        met1, met2, met3, met4 = st.columns(4)
-        with met1:
+        # 2x2 Stacked Grid for KPIs
+        k_row1_col1, k_row1_col2 = st.columns(2)
+        k_row2_col1, k_row2_col2 = st.columns(2)
+        
+        with k_row1_col1:
             st.metric("Library", f"{len(filtered_df):,}")
-        with met2:
+        with k_row1_col2:
             m_count = len(filtered_df[filtered_df['type'].str.upper().str.contains('MOVIE', na=False)])
             st.metric("Movies", f"{m_count:,}")
-        with met3:
+        with k_row2_col1:
             tv_count = len(filtered_df[filtered_df['type'].str.upper().str.contains('SHOW', na=False)])
             st.metric("TV Shows", f"{tv_count:,}")
-        with met4:
+        with k_row2_col2:
             if tv_count > 0:
                 ratio = round(m_count / tv_count, 1)
                 st.metric("M:S Ratio", f"{ratio}:1")
