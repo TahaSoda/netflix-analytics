@@ -342,11 +342,11 @@ try:
             rating_counts = filtered_df['age_certification'].value_counts().reset_index()
             rating_counts.columns = ['Rating', 'Count']
             
+            st.markdown(f"<h3 style='font-size: 0.9rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Maturity Profile</h3>", unsafe_allow_html=True)
             fig_rating = px.bar(
                 rating_counts,
                 x='Rating',
                 y='Count',
-                title="Maturity Profile",
                 color_discrete_sequence=[NETFLIX_RED]
             )
             fig_rating.update_layout(
@@ -355,9 +355,8 @@ try:
                 font=dict(color=WHITE),
                 xaxis=dict(title=None, gridcolor='#333'),
                 yaxis=dict(title=None, gridcolor='#333'),
-                margin=dict(t=25, b=35, l=10, r=10),
-                height=250,
-                title_font_size=12
+                margin=dict(t=5, b=35, l=10, r=10),
+                height=200
             )
             fig_rating.update_traces(hovertemplate="<b>Rating: %{x}</b><br>Titles: %{y}<extra></extra>")
             st.plotly_chart(fig_rating, use_container_width=True)
@@ -377,11 +376,11 @@ try:
             }).reset_index()
             actor_stats.columns = ['Actor', 'Title Count', 'Avg IMDb Score']
             
-            # Filter for top performers with at least some consistency
-            top_performers = actor_stats.sort_values(['Avg IMDb Score', 'Title Count'], ascending=False).head(10)
+            # Filter for top performers
+            top_performers = actor_stats.sort_values(['Avg IMDb Score', 'Title Count'], ascending=False).head(5)
             
             if not top_performers.empty:
-                st.markdown("<h3 style='font-size: 1rem; color: #E50914; margin-bottom: 5px;'>TOP PERFORMING TALENT (ACROSS TITLES)</h3>", unsafe_allow_html=True)
+                st.markdown(f"<h3 style='font-size: 0.9rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Top Performing Talent</h3>", unsafe_allow_html=True)
                 
                 fig_perf = px.bar(
                     top_performers,
@@ -389,17 +388,17 @@ try:
                     y='Actor',
                     orientation='h',
                     color='Avg IMDb Score',
-                    color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]],
+                    color_continuous_scale=[[0, "#E5091444"], [1, NETFLIX_RED]],
                     hover_data={'Title Count': True, 'Avg IMDb Score': ':.2f'}
                 )
                 fig_perf.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
                     font=dict(color=WHITE),
-                    xaxis=dict(title="Avg IMDb Score", gridcolor='#333', range=[0, 10]),
+                    xaxis=dict(title=None, gridcolor='#333', range=[0, 10]),
                     yaxis=dict(title=None, gridcolor='#333', categoryorder='total ascending'),
-                    margin=dict(t=10, b=40, l=10, r=10),
-                    height=250,
+                    margin=dict(t=5, b=35, l=10, r=10),
+                    height=200,
                     coloraxis_showscale=False,
                     showlegend=False
                 )
@@ -424,11 +423,11 @@ try:
             trend_df = trend_df[trend_df['count'] > 0]
             trend_df.columns = ['Year', 'Titles Added']
             
+            st.markdown(f"<h3 style='font-size: 0.9rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Acquisition Trend</h3>", unsafe_allow_html=True)
             fig_trend = px.area(
                 trend_df,
                 x='Year',
                 y='Titles Added',
-                title="Acquisition Trend",
                 line_shape='spline',
                 color_discrete_sequence=[NETFLIX_RED]
             )
@@ -438,21 +437,20 @@ try:
                 font=dict(color=WHITE),
                 xaxis=dict(title=None, gridcolor='#333'),
                 yaxis=dict(title=None, gridcolor='#333'),
-                margin=dict(t=25, b=35, l=10, r=10),
-                height=165,
-                title_font_size=12
+                margin=dict(t=5, b=35, l=10, r=10),
+                height=180
             )
             fig_trend.update_traces(fillcolor='rgba(229, 9, 20, 0.3)', hovertemplate="<b>Year: %{x}</b><br>Titles: %{y}<extra></extra>")
             st.plotly_chart(fig_trend, use_container_width=True)
 
     with col4:
         if not cast_counts.empty:
+            st.markdown(f"<h3 style='font-size: 0.9rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Top Cast</h3>", unsafe_allow_html=True)
             fig_cast = px.bar(
                 cast_counts,
                 x='Count',
                 y='Actor',
                 orientation='h',
-                title="Top Cast",
                 color_discrete_sequence=[NETFLIX_RED]
             )
             fig_cast.update_layout(
@@ -461,9 +459,8 @@ try:
                 font=dict(color=WHITE),
                 xaxis=dict(title=None, gridcolor='#333'),
                 yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10)),
-                margin=dict(t=25, b=35, l=10, r=10),
-                height=165,
-                title_font_size=12
+                margin=dict(t=5, b=35, l=10, r=10),
+                height=180
             )
             fig_cast.update_layout(yaxis={'categoryorder':'total ascending'})
             fig_cast.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
@@ -476,12 +473,12 @@ try:
             country_counts = countries_series.value_counts().head(5).reset_index()
             country_counts.columns = ['Country', 'Count']
             
+            st.markdown(f"<h3 style='font-size: 0.9rem; color: {NETFLIX_RED}; margin-bottom: 5px; text-transform: uppercase;'>Top Countries</h3>", unsafe_allow_html=True)
             fig_country = px.bar(
                 country_counts,
                 x='Count',
                 y='Country',
                 orientation='h',
-                title="Top Countries",
                 color_discrete_sequence=[NETFLIX_RED]
             )
             fig_country.update_layout(
@@ -490,9 +487,8 @@ try:
                 font=dict(color=WHITE),
                 xaxis=dict(title=None, gridcolor='#333'),
                 yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10)),
-                margin=dict(t=25, b=35, l=60, r=10),
-                height=165,
-                title_font_size=12
+                margin=dict(t=5, b=35, l=60, r=10),
+                height=180
             )
             fig_country.update_layout(yaxis={'categoryorder':'total ascending'})
             fig_country.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
