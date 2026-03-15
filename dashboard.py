@@ -199,41 +199,40 @@ try:
     
     with col_kpi:
         with st.container(border=True):
-            st.markdown("**Library Overview**")
-            k_left, k_right = st.columns([1, 1.1])
-            with k_left:
-                st.metric("Total", f"{len(filtered_df):,}")
-                st.metric("Movies", f"{m_count:,}")
-                st.metric("Shows", f"{tv_count:,}")
-            with k_right:
-                ratio_df = pd.DataFrame({"Type": ["Movies", "Shows"], "Count": [m_count, tv_count]})
-                fig_ratio = px.pie(ratio_df, values='Count', names='Type', hole=0.7,
-                                   color_discrete_map={"Movies": NETFLIX_RED, "Shows": "#444"})
-                fig_ratio.update_layout(showlegend=False, paper_bgcolor='rgba(0,0,0,0)', margin=dict(t=5, b=5, l=5, r=5), height=95)
-                fig_ratio.update_traces(textinfo='none')
-                st.plotly_chart(fig_ratio, use_container_width=True, key="ratio_donut", config={'displayModeBar': False})
-                st.caption(f"Ratio {ratio}:1")
+            st.markdown("**Overview**")
+            k_c1, k_c2, k_c3 = st.columns(3)
+            with k_c1: st.metric("Total", f"{len(filtered_df):,}")
+            with k_c2: st.metric("Movies", f"{m_count:,}")
+            with k_c3: st.metric("Shows", f"{tv_count:,}")
+            
+            ratio_df = pd.DataFrame({"Type": ["Movies", "Shows"], "Count": [m_count, tv_count]})
+            fig_ratio = px.pie(ratio_df, values='Count', names='Type', hole=0.7,
+                               color_discrete_map={"Movies": NETFLIX_RED, "Shows": "#444"})
+            fig_ratio.update_layout(showlegend=False, paper_bgcolor='rgba(0,0,0,0)', margin=dict(t=5, b=5, l=5, r=5), height=65)
+            fig_ratio.update_traces(textinfo='none')
+            st.plotly_chart(fig_ratio, use_container_width=True, key="ratio_donut", config={'displayModeBar': False})
+            st.caption(f"Ratio {ratio}:1")
 
     with col_trend:
         if 'year_added' in filtered_df.columns:
             trend_df = filtered_df.groupby('year_added').size().reset_index(name='count')
             with st.container(border=True):
-                st.markdown("**Acquisition Trend**")
+                st.markdown("**Acquisition**")
                 fig_trend = px.area(trend_df, x='year_added', y='count', line_shape='spline', color_discrete_sequence=[NETFLIX_RED])
-                fig_trend.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE, size=9),
+                fig_trend.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE, size=8),
                     xaxis=dict(title=None, gridcolor='#333'), yaxis=dict(title=None, gridcolor='#333'),
-                    margin=dict(t=0, b=0, l=0, r=0), height=105)
+                    margin=dict(t=10, b=30, l=10, r=10), height=110)
                 st.plotly_chart(fig_trend, use_container_width=True, key="trend_chart", config={'displayModeBar': False})
 
     with col_sun:
         with st.container(border=True):
-            st.markdown("**Library Mix**")
+            st.markdown("**Composition**")
             sun_df = base_filtered_df[['type', 'listed_in']].explode('listed_in')
             top_genres = sun_df.groupby('listed_in').size().reset_index(name='count').sort_values('count', ascending=False).head(8)
             fig_tree = px.treemap(top_genres, path=[px.Constant("All"), 'listed_in'], values='count',
                                  color='count', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
             fig_tree.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                margin=dict(t=0, b=0, l=0, r=0), height=105, coloraxis_showscale=False)
+                margin=dict(t=10, b=10, l=10, r=10), height=132, coloraxis_showscale=False)
             fig_tree.update_traces(textinfo="label+value")
             st.plotly_chart(fig_tree, use_container_width=True, key="tree_chart", config={'displayModeBar': False})
 
@@ -246,24 +245,24 @@ try:
     
     with c1:
         with st.container(border=True):
-            st.write("**Top Cast**")
+            st.write("**Cast**")
             cast = credits_filter[credits_filter['role'] == 'ACTOR']['name'].value_counts().head(5).reset_index()
             fig_cast = px.bar(cast, x='count', y='name', orientation='h', 
                              color='count', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
             fig_cast.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                 xaxis=dict(visible=False), yaxis=dict(title=None, categoryorder='total ascending', tickfont=dict(size=8)),
-                margin=dict(t=0, b=0, l=0, r=0), height=100, coloraxis_showscale=False)
+                margin=dict(t=5, b=25, l=10, r=10), height=110, coloraxis_showscale=False)
             st.plotly_chart(fig_cast, use_container_width=True, config={'displayModeBar': False}, key="c1")
 
     with c2:
         with st.container(border=True):
-            st.write("**Top Actors**")
+            st.write("**Actors**")
             act_perf = credits_filter[credits_filter['role'] == 'ACTOR'].merge(filtered_df[['id', 'imdb_score']], on='id').groupby('name')['imdb_score'].mean().reset_index().sort_values('imdb_score', ascending=False).head(5)
             fig_act = px.bar(act_perf, x='imdb_score', y='name', orientation='h', 
                             color='imdb_score', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
             fig_act.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                 xaxis=dict(visible=False, range=[0, 10]), yaxis=dict(title=None, categoryorder='total ascending', tickfont=dict(size=8)),
-                margin=dict(t=0, b=0, l=0, r=0), height=100, coloraxis_showscale=False)
+                margin=dict(t=5, b=25, l=10, r=10), height=110, coloraxis_showscale=False)
             st.plotly_chart(fig_act, use_container_width=True, config={'displayModeBar': False}, key="c2")
 
     with c3:
@@ -274,7 +273,7 @@ try:
                             color='imdb_score', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
             fig_dir.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                 xaxis=dict(visible=False, range=[0, 10]), yaxis=dict(title=None, categoryorder='total ascending', tickfont=dict(size=8)),
-                margin=dict(t=0, b=0, l=0, r=0), height=100, coloraxis_showscale=False)
+                margin=dict(t=5, b=25, l=10, r=10), height=110, coloraxis_showscale=False)
             st.plotly_chart(fig_dir, use_container_width=True, config={'displayModeBar': False}, key="c3")
 
     with c4:
@@ -285,7 +284,7 @@ try:
                             color='count', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
             fig_rat.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                 xaxis=dict(title=None, tickfont=dict(size=8), tickangle=-45), yaxis=dict(visible=False),
-                margin=dict(t=0, b=0, l=0, r=0), height=100, coloraxis_showscale=False)
+                margin=dict(t=5, b=25, l=10, r=10), height=110, coloraxis_showscale=False)
             st.plotly_chart(fig_rat, use_container_width=True, config={'displayModeBar': False}, key="c4")
 
     with c5:
@@ -295,7 +294,7 @@ try:
             fig_geo = px.bar(geo, x='count', y='country', orientation='h', color_discrete_sequence=[NETFLIX_RED])
             fig_geo.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                 xaxis=dict(visible=False), yaxis=dict(title=None, categoryorder='total ascending', tickfont=dict(size=8)),
-                margin=dict(t=0, b=0, l=0, r=0), height=100)
+                margin=dict(t=5, b=25, l=10, r=10), height=110)
             st.plotly_chart(fig_geo, use_container_width=True, key="c5", config={'displayModeBar': False})
 
     if st.session_state.get('show_explorer', False):
