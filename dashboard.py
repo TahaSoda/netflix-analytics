@@ -200,18 +200,19 @@ try:
     with col_kpi:
         with st.container(border=True):
             st.markdown("**Overview**")
-            k_c1, k_c2, k_c3 = st.columns(3)
-            with k_c1: st.metric("Total", f"{len(filtered_df):,}")
-            with k_c2: st.metric("Movies", f"{m_count:,}")
-            with k_c3: st.metric("Shows", f"{tv_count:,}")
-            
-            ratio_df = pd.DataFrame({"Type": ["Movies", "Shows"], "Count": [m_count, tv_count]})
-            fig_ratio = px.pie(ratio_df, values='Count', names='Type', hole=0.7,
-                               color_discrete_map={"Movies": NETFLIX_RED, "Shows": "#444"})
-            fig_ratio.update_layout(showlegend=False, paper_bgcolor='rgba(0,0,0,0)', margin=dict(t=5, b=5, l=5, r=5), height=65)
-            fig_ratio.update_traces(textinfo='none')
-            st.plotly_chart(fig_ratio, use_container_width=True, key="ratio_donut", config={'displayModeBar': False})
-            st.caption(f"Ratio {ratio}:1")
+            k_metrics, k_donut = st.columns([1, 1.2])
+            with k_metrics:
+                st.metric("Total", f"{len(filtered_df):,}")
+                st.metric("Movie", f"{m_count:,}")
+                st.metric("Show", f"{tv_count:,}")
+            with k_donut:
+                ratio_df = pd.DataFrame({"Type": ["Movies", "Shows"], "Count": [m_count, tv_count]})
+                fig_ratio = px.pie(ratio_df, values='Count', names='Type', hole=0.7,
+                                   color_discrete_map={"Movies": NETFLIX_RED, "Shows": "#444"})
+                fig_ratio.update_layout(showlegend=False, paper_bgcolor='rgba(0,0,0,0)', margin=dict(t=5, b=5, l=5, r=5), height=105)
+                fig_ratio.update_traces(textinfo='none')
+                st.plotly_chart(fig_ratio, use_container_width=True, key="ratio_donut", config={'displayModeBar': False})
+                st.caption(f"Ratio {ratio}:1")
 
     with col_trend:
         if 'year_added' in filtered_df.columns:
@@ -232,7 +233,7 @@ try:
             fig_tree = px.treemap(top_genres, path=[px.Constant("All"), 'listed_in'], values='count',
                                  color='count', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
             fig_tree.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                margin=dict(t=10, b=10, l=10, r=10), height=132, coloraxis_showscale=False)
+                margin=dict(t=10, b=10, l=10, r=10), height=110, coloraxis_showscale=False)
             fig_tree.update_traces(textinfo="label+value")
             st.plotly_chart(fig_tree, use_container_width=True, key="tree_chart", config={'displayModeBar': False})
 
@@ -284,7 +285,7 @@ try:
                             color='count', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
             fig_rat.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
                 xaxis=dict(title=None, tickfont=dict(size=8), tickangle=-45), yaxis=dict(visible=False),
-                margin=dict(t=5, b=25, l=10, r=10), height=110, coloraxis_showscale=False)
+                margin=dict(t=5, b=45, l=10, r=10), height=110, coloraxis_showscale=False)
             st.plotly_chart(fig_rat, use_container_width=True, config={'displayModeBar': False}, key="c4")
 
     with c5:
