@@ -247,25 +247,70 @@ try:
     sort_map = {"Release Year": "release_year", "Title": "title", "IMDb Score": "imdb_score"}
     if sort_map[sort_by] in filtered_df.columns:
         filtered_df = filtered_df.sort_values(by=sort_map[sort_by], ascending=(sort_by == "Title"))
-    # --- Header Section (Centered Row) ---
-    try:
-        logo_base64 = get_img_with_href("assets/logo.png")
-    except:
-        logo_base64 = ""
+    # --- Deep Intelligence Engine ---
+    deep_insights = []
+    if not filtered_df.empty:
+        # 1. Genre Opportunity Analysis (Hidden Gems)
+        genre_stats = filtered_df.explode('listed_in').groupby('listed_in').agg({
+            'id': 'count',
+            'imdb_score': 'mean'
+        }).reset_index()
+        genre_stats.columns = ['Genre', 'Count', 'AvgScore']
+        
+        high_quality_niche = genre_stats[(genre_stats['Count'] <= genre_stats['Count'].median()) & 
+                                        (genre_stats['AvgScore'] >= genre_stats['AvgScore'].quantile(0.75))]
+        if not high_quality_niche.empty:
+            best_niche = high_quality_niche.sort_values('AvgScore', ascending=False).iloc[0]
+            deep_insights.append(f"<b>OPPORTUNITY MAP:</b> '{best_niche['Genre']}' is a high-performing niche (Avg Score: {best_niche['AvgScore']:.1f}) with low volume—potential for original content expansion.")
 
-    st.markdown(f"""
-        <div style="display: flex; flex-direction: row; align-items: center; justify-content: center; width: 100%; gap: 15px; margin-bottom: 5px;">
-            <img src="{logo_base64}" width="50">
-            <div style="text-align: left; border-left: 2px solid {NETFLIX_RED}; padding-left: 15px;">
-                <h1 style="margin: 0; padding: 0; font-size: 2rem; color: {WHITE}; letter-spacing: 1px; font-weight: 800; line-height: 1;">
-                    NETFLIX <span style="color: {NETFLIX_RED};">ANALYTICS</span>
-                </h1>
-                <p style="margin: 0; padding: 0; color: #BBB; font-size: 0.8rem; font-weight: 400; letter-spacing: 0.5px; margin-top: 2px;">
-                    Unveiling Content Trends & Library Insights
-                </p>
+        # 2. Creator Impact & Efficiency
+        if not credits_df.empty:
+            f_ids = filtered_df['id'].unique()
+            f_credits = credits_df[credits_df['id'].isin(f_ids)]
+            dir_stats = f_credits[f_credits['role'] == 'DIRECTOR'].merge(filtered_df[['id', 'imdb_score']], on='id')
+            dir_perf = dir_stats.groupby('name')['imdb_score'].mean().reset_index()
+            if not dir_perf.empty:
+                top_perf_dir = dir_perf.sort_values('imdb_score', ascending=False).iloc[0]
+                deep_insights.append(f"<b>CREATOR IMPACT:</b> Director <b>{top_perf_dir['name']}</b> maintains a top-tier rating average (IMDb: {top_perf_dir['imdb_score']:.1f}) across selected titles.")
+
+        # 3. Format Strategy
+        format_split = filtered_df['type'].value_counts()
+        if len(format_split) > 1:
+            movie_pct = (format_split.get('MOVIE', 0) / len(filtered_df)) * 100
+            strategy_desc = "Movie-heavy" if movie_pct > 60 else "Series-focused" if movie_pct < 40 else "Balanced"
+            deep_insights.append(f"<b>STRATEGY PULSE:</b> The library currently shows a <b>{strategy_desc}</b> posture ({movie_pct:.0f}% Movies) for this segment.")
+
+    insight_ticker = "<br>".join([f"• {text}" for text in deep_insights]) if deep_insights else "No specific patterns detected in current view."
+
+    # --- Header Section (Brand Left, Expanded Insights Right) ---
+    head_left, head_right = st.columns([1, 1.8])
+
+    with head_left:
+        try:
+            logo_base64 = get_img_with_href("assets/logo.png")
+        except:
+            logo_base64 = ""
+            
+        st.markdown(f"""
+            <div style="display: flex; align-items: center; justify-content: flex-start; background: rgba(255,255,255,0.03); padding: 8px 15px; border-radius: 12px; border-left: 4px solid {NETFLIX_RED}; height: 65px; gap: 12px;">
+                <img src="{logo_base64}" width="40">
+                <div style="text-align: left;">
+                    <h1 style="margin: 0; padding: 0; font-size: 1.4rem; color: {WHITE}; letter-spacing: 1px; font-weight: 800; line-height: 1;">
+                        NETFLIX <span style="color: {NETFLIX_RED};">ANALYTICS</span>
+                    </h1>
+                    <p style="margin: 0; color: #888; font-size: 0.65rem; text-transform: uppercase;">Library Intelligence Hub</p>
+                </div>
             </div>
-        </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+
+    with head_right:
+        st.markdown(f"""
+            <div style="background: rgba(255,255,255,0.05); padding: 8px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); border-right: 4px solid {NETFLIX_RED}; height: 65px; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
+                <div style="color: #BBB; font-size: 0.7rem; line-height: 1.3; width: 100%;">
+                    {insight_ticker}
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
 
     # Preserve state for static charts (Genre Composition)
     base_filtered_df = filtered_df.copy()
@@ -453,47 +498,7 @@ try:
             fig_country.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
             st.plotly_chart(fig_country, use_container_width=True)
 
-    # --- Row 4: Strategic AI Insights ---
-    st.markdown("<div style='margin-top: 5px;'></div>", unsafe_allow_html=True)
-    
-    # Calculate Insights
-    insights = []
-    if not filtered_df.empty:
-        # Genre Insight (Recalculate for insights)
-        temp_genres = filtered_df['listed_in'].explode().value_counts().reset_index()
-        temp_genres.columns = ['Genre', 'Count']
-        
-        if not temp_genres.empty:
-            top_genre = temp_genres.iloc[0]['Genre']
-            top_genre_pct = (temp_genres.iloc[0]['Count'] / len(filtered_df) * 100)
-            insights.append(f"<b>{top_genre}</b> dominates the library, accounting for {top_genre_pct:.1f}% of selected titles.")
-        
-        # Trend Insight
-        if 'year_added' in filtered_df.columns:
-            # Re-ensure trend_df is defined or recalculate
-            trend_data = filtered_df.groupby('year_added').size().reset_index(name='count')
-            if not trend_data.empty:
-                peak_year = trend_data.iloc[trend_data['count'].idxmax()]['year_added']
-                insights.append(f"Content acquisition peaked in <b>{int(peak_year)}</b>, showing a significant library expansion phase.")
-        
-        # Rating Insight
-        if 'age_certification' in filtered_df.columns:
-            r_counts = filtered_df['age_certification'].value_counts().reset_index()
-            if not r_counts.empty:
-                top_rating = r_counts.iloc[0]['age_certification']
-                insights.append(f"The primary audience segment is <b>{top_rating}</b>, indicating a focus on mature/adult content.")
-
-    # Render Insights with Premium Styling
-    insight_html = "".join([f"<div style='flex: 1; min-width: 200px; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px; border-left: 3px solid {NETFLIX_RED}; margin: 3px;'><p style='margin:0; font-size: 0.8rem; color: {WHITE};'>{text}</p></div>" for text in insights])
-    
-    st.markdown(f"""
-        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
-            <h3 style="margin: 0 0 5px 5px; font-size: 0.9rem; color: {NETFLIX_RED}; letter-spacing: 1px; font-weight: 700;">STRATEGIC INSIGHTS</h3>
-            <div style="display: flex; flex-wrap: wrap; justify-content: space-between;">
-                {insight_html}
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+    # Library Intelligence engine is now integrated into the header
 
     # Conditional Data Explorer
     if st.session_state.get('show_explorer', False):
