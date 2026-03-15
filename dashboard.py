@@ -284,10 +284,11 @@ try:
         with st.container(border=True):
             st.write("**Region**")
             geo = filtered_df['country'].explode().value_counts().head(5).reset_index()
-            fig_geo = px.bar(geo, x='count', y='country', orientation='h', color_discrete_sequence=[NETFLIX_RED])
+            fig_geo = px.treemap(geo, path=[px.Constant("All"), 'country'], values='count',
+                                 color='count', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
             fig_geo.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                xaxis=dict(visible=False), yaxis=dict(title=None, categoryorder='total ascending', tickfont=dict(size=8)),
-                margin=dict(t=5, b=25, l=10, r=10), height=110)
+                margin=dict(t=5, b=25, l=10, r=10), height=110, coloraxis_showscale=False)
+            fig_geo.update_traces(textinfo="label+value")
             st.plotly_chart(fig_geo, use_container_width=True, key="c5", config={'displayModeBar': False})
 
     if st.session_state.get('show_explorer', False):
