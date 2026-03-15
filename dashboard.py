@@ -388,7 +388,7 @@ try:
                     y='Actor',
                     orientation='h',
                     color='Avg IMDb Score',
-                    color_continuous_scale=[[0, "#E5091444"], [1, NETFLIX_RED]],
+                    color_continuous_scale=[[0, "#333"], [1, NETFLIX_RED]],
                     hover_data={'Title Count': True, 'Avg IMDb Score': ':.2f'}
                 )
                 fig_perf.update_layout(
