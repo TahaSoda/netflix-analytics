@@ -464,32 +464,36 @@ try:
         }).reset_index()
         actor_stats.columns = ['Actor', 'Title Count', 'Avg IMDb Score']
         
-        # Filter for significant volume
-        top_performers = actor_stats[actor_stats['Title Count'] >= 1].sort_values('Avg IMDb Score', ascending=False).head(15)
+        # Filter for top performers with at least some consistency
+        top_performers = actor_stats.sort_values(['Avg IMDb Score', 'Title Count'], ascending=False).head(10)
         
         if not top_performers.empty:
-            st.markdown("<h3 style='font-size: 1rem; color: #E50914; margin-bottom: 5px;'>TALENT PERFORMANCE: QUALITY VS. VOLUME</h3>", unsafe_allow_html=True)
-            fig_perf = px.scatter(
+            st.markdown("<h3 style='font-size: 1rem; color: #E50914; margin-bottom: 5px;'>TOP PERFORMING TALENT (ACROSS TITLES)</h3>", unsafe_allow_html=True)
+            
+            fig_perf = px.bar(
                 top_performers,
-                x='Title Count',
-                y='Avg IMDb Score',
-                text='Actor',
-                size='Title Count',
+                x='Avg IMDb Score',
+                y='Actor',
+                orientation='h',
                 color='Avg IMDb Score',
-                color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]]
+                color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]],
+                hover_data={'Title Count': True, 'Avg IMDb Score': ':.2f'}
             )
             fig_perf.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 font=dict(color=WHITE),
-                xaxis=dict(title="Volume (Titles)", gridcolor='#333', dtick=None),
-                yaxis=dict(title="Avg IMDb Score", gridcolor='#333'),
+                xaxis=dict(title="Avg IMDb Score", gridcolor='#333', range=[0, 10]),
+                yaxis=dict(title=None, gridcolor='#333', categoryorder='total ascending'),
                 margin=dict(t=10, b=40, l=10, r=10),
-                height=220,
+                height=250,
                 coloraxis_showscale=False,
                 showlegend=False
             )
-            fig_perf.update_traces(textposition='top center', marker=dict(line=dict(width=1, color='rgba(255,255,255,0.2)')))
+            fig_perf.update_traces(
+                hovertemplate="<b>%{y}</b><br>Avg Score: %{x:.2f}<br>Titles: %{customdata[0]}<extra></extra>",
+                marker_line_width=0
+            )
             st.plotly_chart(fig_perf, use_container_width=True)
 
     # --- Row 4: Strategic AI Insights ---
