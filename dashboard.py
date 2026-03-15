@@ -409,6 +409,95 @@ try:
                 )
                 st.plotly_chart(fig_perf, use_container_width=True)
 
+    # --- Row 3: Trends, Cast, Geography (3 Columns) ---
+    col3, col4, col5 = st.columns(3)
+    
+    # Pre-calculate Top Cast
+    filtered_ids = filtered_df['id'].unique()
+    cast_counts = credits_df[(credits_df['id'].isin(filtered_ids)) & (credits_df['role'] == 'ACTOR')]
+    cast_counts = cast_counts['name'].value_counts().head(5).reset_index()
+    cast_counts.columns = ['Actor', 'Count']
+
+    with col3:
+        if 'year_added' in filtered_df.columns:
+            trend_df = filtered_df.groupby('year_added').size().reset_index(name='count')
+            trend_df = trend_df[trend_df['count'] > 0]
+            trend_df.columns = ['Year', 'Titles Added']
+            
+            fig_trend = px.area(
+                trend_df,
+                x='Year',
+                y='Titles Added',
+                title="Acquisition Trend",
+                line_shape='spline',
+                color_discrete_sequence=[NETFLIX_RED]
+            )
+            fig_trend.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font=dict(color=WHITE),
+                xaxis=dict(title=None, gridcolor='#333'),
+                yaxis=dict(title=None, gridcolor='#333'),
+                margin=dict(t=25, b=35, l=10, r=10),
+                height=165,
+                title_font_size=12
+            )
+            fig_trend.update_traces(fillcolor='rgba(229, 9, 20, 0.3)', hovertemplate="<b>Year: %{x}</b><br>Titles: %{y}<extra></extra>")
+            st.plotly_chart(fig_trend, use_container_width=True)
+
+    with col4:
+        if not cast_counts.empty:
+            fig_cast = px.bar(
+                cast_counts,
+                x='Count',
+                y='Actor',
+                orientation='h',
+                title="Top Cast",
+                color_discrete_sequence=[NETFLIX_RED]
+            )
+            fig_cast.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font=dict(color=WHITE),
+                xaxis=dict(title=None, gridcolor='#333'),
+                yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10)),
+                margin=dict(t=25, b=35, l=10, r=10),
+                height=165,
+                title_font_size=12
+            )
+            fig_cast.update_layout(yaxis={'categoryorder':'total ascending'})
+            fig_cast.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
+            st.plotly_chart(fig_cast, use_container_width=True)
+
+    with col5:
+        if 'country' in filtered_df.columns:
+            # Explode list of countries
+            countries_series = filtered_df['country'].explode().dropna()
+            country_counts = countries_series.value_counts().head(5).reset_index()
+            country_counts.columns = ['Country', 'Count']
+            
+            fig_country = px.bar(
+                country_counts,
+                x='Count',
+                y='Country',
+                orientation='h',
+                title="Top Countries",
+                color_discrete_sequence=[NETFLIX_RED]
+            )
+            fig_country.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font=dict(color=WHITE),
+                xaxis=dict(title=None, gridcolor='#333'),
+                yaxis=dict(title=None, gridcolor='#333', tickfont=dict(size=10)),
+                margin=dict(t=25, b=35, l=60, r=10),
+                height=165,
+                title_font_size=12
+            )
+            fig_country.update_layout(yaxis={'categoryorder':'total ascending'})
+            fig_country.update_traces(hovertemplate="<b>%{y}</b><br>Titles: %{x}<extra></extra>")
+            st.plotly_chart(fig_country, use_container_width=True)
+
     # --- Row 4: Strategic AI Insights ---
     st.markdown("<div style='margin-top: 5px;'></div>", unsafe_allow_html=True)
     
