@@ -229,8 +229,8 @@ try:
             fig_tree.update_traces(textinfo="label+value")
             st.plotly_chart(fig_tree, use_container_width=True, key="tree_chart", config={'displayModeBar': False})
 
-    # --- Row 2: Deep Analysis (5 Ultra-Compact Columns) ---
-    c1, c2, c3, c4, c5 = st.columns(5)
+    # --- Row 2: Deep Analysis (4 Columns, Region dominant) ---
+    c1, c3, c4, c5 = st.columns([1, 1, 1, 2])
     
     # Data prep
     filtered_ids = filtered_df['id'].unique()
@@ -246,17 +246,6 @@ try:
                 xaxis=dict(visible=False), yaxis=dict(title=None, categoryorder='total ascending', tickfont=dict(size=8)),
                 margin=dict(t=5, b=25, l=10, r=10), height=110, coloraxis_showscale=False)
             st.plotly_chart(fig_cast, use_container_width=True, config={'displayModeBar': False}, key="c1")
-
-    with c2:
-        with st.container(border=True):
-            st.write("**Actors**")
-            act_perf = credits_filter[credits_filter['role'] == 'ACTOR'].merge(filtered_df[['id', 'imdb_score']], on='id').groupby('name')['imdb_score'].mean().reset_index().sort_values('imdb_score', ascending=False).head(5)
-            fig_act = px.bar(act_perf, x='imdb_score', y='name', orientation='h', 
-                            color='imdb_score', color_continuous_scale=[[0, "#444"], [1, NETFLIX_RED]])
-            fig_act.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color=WHITE),
-                xaxis=dict(visible=False, range=[0, 10]), yaxis=dict(title=None, categoryorder='total ascending', tickfont=dict(size=8)),
-                margin=dict(t=5, b=25, l=10, r=10), height=110, coloraxis_showscale=False)
-            st.plotly_chart(fig_act, use_container_width=True, config={'displayModeBar': False}, key="c2")
 
     with c3:
         with st.container(border=True):
